@@ -12,6 +12,8 @@
 
 import { BOARD_APP, BOARD_VERSION } from './state.js';
 import { defaultRegistries } from './constants.js';
+import { readSync } from './sync/protocol.js';
+import { deviceId } from './sync/config.js';
 
 /* ============================================================
    Write
@@ -72,6 +74,7 @@ export function deserialize(raw){
     tokens: [],
     registries: readRegistries(raw.registries, uid),
     ui: raw.ui && typeof raw.ui === 'object' ? raw.ui : {},
+    sync: readSync(raw.sync, deviceId()),
     seq,
   };
 

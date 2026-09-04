@@ -38,6 +38,8 @@ real tests.
 | `registries.js` | The one-item-one-room rule and the placement that enforces it. |
 | `paths.js` | `data-path` addressing (see below). |
 | `serialize.js` | Reading and writing board files, including migration from pre-v3 layouts. Pure. |
+| `sync/` | The shared board: `protocol.js` (what travels and how it is versioned), `merge.js` (the merge rule, pure), `github.js` (Contents API client), `engine.js` (the loop), `config.js` (per-device settings). |
+| `autosave.js` | Debounced write of the board to `localStorage`, restored on load. |
 
 ### `ui/` — rendering
 
@@ -133,11 +135,42 @@ that land in element content, so every call site wraps them in `esc()`;
 `locIcon()` itself returns raw text because `blockTargets()` feeds it into
 labels that are escaped once, further down.
 
+## Syncing
+
+The board can be shared through a JSON file in a private GitHub repository.
+[docs/SYNC.md](SYNC.md) is the user-facing setup; this is the shape of it.
+
+**One change hook.** `state.js` keeps a listener set that `mark()` fires.
+Autosave and sync both subscribe there instead of being called from thirty
+mutation sites, and both debounce, because `mark()` runs on every keystroke.
+
+**Stamping by comparison, not instrumentation.** Every top-level entity —
+scene, passage, token, registry — carries a stamp of `[rev, time, device]`.
+Rather than asking each mutation to bump its own stamp, which one of them
+would eventually forget to do, `stampChanges()` compares the board against the
+last stamped snapshot and stamps whatever actually differs.
+
+**The merge rule** lives in `merge.js` and is pure, so the whole of it is
+under test. Per entity id, the later stamp wins; a tombstone is just another
+stamp, which is what lets a deletion reach a device that was offline when it
+happened. Granularity is the entity, so two DMs on different scenes never
+collide.
+
+**Two snapshots, easy to confuse.** The engine keeps `stamped` (the board as
+of the last stamping) and `remote` (what the server holds). After a merge
+those differ, and using one for the other's job means either re-stamping
+unchanged entities or never pushing a merged result. They are separate fields
+for that reason.
+
+**Conflicts are expected, not exceptional.** A `PUT` carrying a stale blob sha
+gets a 409 from GitHub; the engine reads, merges and writes again. That is the
+normal path when two tables save at once, not an error worth showing.
+
+**Local-only fields stay local.** `SYNCED` in `protocol.js` lists what
+travels. Panel widths and the camera are not on it.
+
 ## What is deliberately absent
 
-- **No persistence.** The board lives in the page; Export JSON is the save
-  button, and `beforeunload` warns when there are unsaved changes. Adding
-  autosave to `localStorage` would be a small change to `toolbar.js`.
 - **No undo.** Deletions confirm instead.
 - **No framework.** The render functions build HTML strings and assign
   `innerHTML`. At this size that is faster to read than a component tree, and

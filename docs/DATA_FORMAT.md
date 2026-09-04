@@ -20,6 +20,7 @@ them; see *Migration* at the end.
   "registries": [ /* … */ ],
   "ui": { "railW": 288, "inspW": 340, "hideL": false, "hideR": false },
   "camera": { "x": 60, "y": 60, "z": 1 },
+  "sync": { /* see below */ },
   "seq": 87,                      // id counter, kept ahead of every id in use
   "exportedAt": "2026-09-04T11:05:00.000Z"
 }
@@ -180,6 +181,37 @@ Placement lives on the room (`location.reg`), not here. The single-placement
 rule is enforced on write: placing an item anywhere clears it from wherever it
 was.
 
+## Sync block
+
+Present when the board has ever been shared between devices. It is what lets
+two DMs merge instead of overwriting each other; a board that never syncs
+carries an empty one and nothing depends on it.
+
+```jsonc
+{
+  "clock": 87,                 // Lamport counter, bumped per change
+  "device": "d7fa2c",          // the device that wrote this file
+  "stamps": {                  // entityId -> [rev, unix-ms, deviceId]
+    "s1a2b": [12, 1757068200000, "d7fa2c"]
+  },
+  "tombs": {                   // same shape, for entities that were deleted
+    "s9zz1": [15, 1757068800000, "dbb410"]
+  }
+}
+```
+
+Stamps cover **top-level entities only** — scenes, connections, tokens and
+registries. Everything inside a scene moves with its scene.
+
+Tombstones are what make a deletion stick: without one, a device that was
+offline when the scene was deleted would push it back as new. They are never
+pruned automatically; a board that has churned through hundreds of scenes will
+carry a long `tombs` map, which is harmless but can be emptied by hand between
+campaigns.
+
+`ui` and `camera` are deliberately **not** covered and never travel between
+devices — see `SYNCED` in `src/js/core/sync/protocol.js`.
+
 ## Reading rules
 
 The reader treats the file as untrusted and normalises everything:
@@ -188,7 +220,8 @@ The reader treats the file as untrusted and normalises everything:
 - `lvl` is clamped to 1–4, numeric fields coerced, non-numbers become `0`;
 - connections and token positions referring to absent ids are dropped;
 - empty registry slots are removed;
-- `seq` is raised past the highest id in the file.
+- `seq` is raised past the highest id in the file;
+- malformed stamps are dropped rather than trusted.
 
 A payload without a `scenes` array is rejected outright.
 

@@ -9,6 +9,7 @@ tool is specific to it beyond the starting lists, which are editable.
 
 **[Open the board →](https://fierybeaver.github.io/epic_scene_creator/)**
 · [User guide (українською)](docs/USAGE.md)
+· [Shared board setup](docs/SYNC.md)
 · [Architecture](docs/ARCHITECTURE.md)
 · [Board file format](docs/DATA_FORMAT.md)
 
@@ -36,9 +37,15 @@ those threads visible.
 | **Tokens** | Parties, scouts, allies, bosses that broke through. Drag them between scenes and passages. |
 | **Registries** | Lists of unique things (the nine tombs, the five keys, anything you add). Each item lives in exactly one room, board-wide. |
 | **View mode** | Read-only briefing for the table: every reference becomes a jump button. Counters and tokens still work. |
+| **Shared board** | Several DMs, several devices, one dungeon — the board syncs through a JSON file in a private GitHub repo. Scenes merge individually, so two tables never overwrite each other. |
 
-There is no server and no account. The board lives in the page; **Export JSON**
-saves it, **Import JSON** brings it back.
+There is no server. The board lives in the page and is autosaved to the
+browser, so a closed tab costs nothing; **Export JSON** writes it to a file and
+**Import JSON** brings it back.
+
+For several DMs at once, connect the board to a private GitHub repository and
+every device stays in step — see [docs/SYNC.md](docs/SYNC.md). Each DM uses
+their own token; each save is a commit, so the repo is also the session log.
 
 ## Using it
 
@@ -77,6 +84,7 @@ src/
   styles/             tokens · layout · board · rail · inspector
   js/
     core/             the board and the rules about it — no DOM
+      sync/           merge rule, GitHub client, the sync loop
     util/             escaping, geometry, small DOM helpers
     ui/               rendering: board, edges, inspector, rail, camera
     input/            pointer, keyboard, forms, toolbar, demo layout

@@ -8,6 +8,8 @@
  */
 
 import { defaultRegistries } from './constants.js';
+import { newSync } from './sync/protocol.js';
+import { deviceId } from './sync/config.js';
 
 export const BOARD_APP = 'toa-scene-board';
 export const BOARD_VERSION = 3;
@@ -23,6 +25,7 @@ export function blank(){
     tokens: [],
     registries: defaultRegistries(),
     ui: {},
+    sync: newSync(deviceId()),
     seq: 1,
   };
 }
@@ -51,8 +54,23 @@ export function setModeValue(m){
 /** Set once anything changes; cleared by export and import. Guards unload. */
 export let dirty = false;
 
+/**
+ * Anything that wants to know the board changed subscribes here rather than
+ * being called from three dozen mutation sites. Autosave and sync both use
+ * it; both debounce, because `mark()` fires on every keystroke.
+ */
+const listeners = new Set();
+
+export function onChange(fn){
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
 export function mark(){
   dirty = true;
+  listeners.forEach(fn => {
+    try { fn(); } catch (err){ console.error('change listener failed', err); }
+  });
 }
 
 export function clearDirty(){

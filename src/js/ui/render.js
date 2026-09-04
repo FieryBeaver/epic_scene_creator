@@ -26,6 +26,36 @@ export function renderLive(){
   renderPaneScenes();
 }
 
+/**
+ * Full refresh that survives a DM typing into the inspector.
+ *
+ * A merge from another device can land at any moment, including mid-sentence.
+ * Replacing the panel's innerHTML would take the focused field with it, so
+ * the field is found again afterwards by its `data-path` and the caret put
+ * back where it was.
+ */
+export function renderPreservingFocus(){
+  const active = document.activeElement;
+  const path = active && active.getAttribute && active.getAttribute('data-path');
+
+  if (!path){
+    renderAll();
+    return;
+  }
+
+  const start = active.selectionStart;
+  const end = active.selectionEnd;
+  const scrollTop = document.getElementById('insp').scrollTop;
+
+  renderAll();
+
+  const again = document.querySelector(`[data-path="${CSS.escape(path)}"]`);
+  if (!again) return;
+  again.focus();
+  try { again.setSelectionRange(start, end); } catch { /* not a text field */ }
+  document.getElementById('insp').scrollTop = scrollTop;
+}
+
 export function select(kind, id){
   if (sel && sel.kind === kind && sel.id === id) return;
   setSel({ kind, id });

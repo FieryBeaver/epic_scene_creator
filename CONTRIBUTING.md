@@ -29,6 +29,7 @@ npm run check    # tests + build, the same thing CI runs
 | New template text | `core/templates.js` |
 | New hotkey | `input/keyboard.js` |
 | New board-file field | `core/serialize.js` **and** a test in `test/serialize.test.mjs` |
+| Anything about syncing | `core/sync/` — the merge rule is `merge.js` and is fully tested; add the case before the code |
 | Styling | the matching `src/styles/*.css`; colours belong in `tokens.css` |
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the full module map and the
@@ -38,6 +39,11 @@ four rules the code follows. Two of them are easy to break by accident:
   and the caret goes with it. Use `renderLive()`.
 - **Anything reaching a `style="…"` attribute goes through `safeColor()`**,
   not `esc()`. Board files come from disk and are untrusted.
+
+Sync adds a third: **a new top-level collection has to be listed in
+`SYNCED`** (`core/sync/protocol.js`) or it will silently never travel between
+devices. Fields that belong to one device — panel widths, the camera — must
+stay *out* of it.
 
 ## Changing the board file format
 

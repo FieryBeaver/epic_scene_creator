@@ -13,6 +13,7 @@ import { setTab } from '../ui/rail.js';
 import { toggleLink, stopLink } from './linkmode.js';
 import { createSceneAtCenter } from './scenes.js';
 import { buildDemoBoard } from './demo.js';
+import { clearAutosave, writeNow } from '../core/autosave.js';
 
 export function initToolbar(){
   el('bAddScene').onclick = () => createSceneAtCenter();
@@ -72,6 +73,7 @@ function exportBoard(){
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   clearDirty();
+  writeNow(cam);
   toast('JSON збережено');
 }
 
@@ -116,6 +118,7 @@ function loadDemo(){
 
 function clearBoard(){
   if (!confirm('Очистити дошку? Незбережені дані буде втрачено.')) return;
+  clearAutosave();
   setBoard(blank());
   setSel(null);
   clearDirty();
