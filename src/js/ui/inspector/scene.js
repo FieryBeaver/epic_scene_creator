@@ -229,6 +229,14 @@ function sectionRooms(s){
     }).join('') + `</div>`;
   });
 
+  // The moment a DM wants to track something the two default lists do not
+  // cover — artefacts, NPCs, seals — is right here, not in the tab strip.
+  h += `<div class="row eonly" style="margin-top:9px">
+    <button class="btn sm" data-addreg>＋ свій список</button>
+    <span class="hint" style="margin:0">Наприклад: артефакти, NPC, печатки.
+      Кожен елемент лежить рівно в одній кімнаті.</span>
+  </div>`;
+
   return h + `</fieldset>`;
 }
 

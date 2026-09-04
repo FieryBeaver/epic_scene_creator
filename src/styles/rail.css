@@ -1,13 +1,23 @@
 /* Left rail: tab strip and the list panes (scenes, tokens, registries). */
 
-#tabs{display:flex;position:sticky;top:0;background:var(--stone);z-index:5;border-bottom:1px solid var(--line);
-  overflow-x:auto;scrollbar-width:none}
-#tabs::-webkit-scrollbar{display:none}
+/* The strip scrolls, but "new list" sits outside it: with the scrollbar
+   hidden, a third list used to push that button off the edge with nothing to
+   suggest it was still there. Wrapping instead would cost ~70px of rail
+   height in the common case, which the scene list needs more. */
+#tabs{display:flex;align-items:stretch;position:sticky;top:0;background:var(--stone);
+  z-index:5;border-bottom:1px solid var(--line)}
+#tabStrip{display:flex;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:thin;
+  scrollbar-color:var(--line) transparent}
+#tabStrip::-webkit-scrollbar{height:3px}
+#tabStrip::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
 #tabs button{
-  flex:1 0 auto;background:none;border:0;border-bottom:2px solid transparent;padding:9px 9px;
+  flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;padding:8px 9px 7px;
   color:var(--dim);font-size:12px;white-space:nowrap;
 }
-#tabs button.plus{flex:0 0 auto;padding:9px 11px;font-size:15px;line-height:1}
+/* Pinned outside the scroll area, so it is always where you left it. */
+#tabs>button.plus{flex:0 0 auto;padding:8px 12px;font-size:15px;line-height:1;
+  border-left:1px solid var(--line);color:var(--jade)}
+#tabs>button.plus:hover{background:#54be9b1f;color:#8FE3C6}
 #tabs button.on{color:var(--bone);border-bottom-color:var(--jade)}
 
 .pane{display:none;padding:10px}

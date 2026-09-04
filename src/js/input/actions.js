@@ -193,6 +193,14 @@ function addRegistry(){
   setTab('reg-' + r.id);
   mark();
   renderAll();
+
+  // Land in the name field with the placeholder selected, so the first
+  // keystroke names the list instead of appending to "Новий список".
+  const name = document.querySelector(`#p-reg-${CSS.escape(r.id)} input[data-path$=":nm"]`);
+  if (name){
+    name.focus();
+    name.select();
+  }
 }
 
 function delRegistry(regId){

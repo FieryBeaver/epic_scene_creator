@@ -28,20 +28,38 @@ export function renderRail(){
   showTab();
 }
 
-function renderTabs(){
-  el('tabs').innerHTML =
+/**
+ * Only the strip is rebuilt; the "new list" button is markup and stays put.
+ * Exported because renaming a list has to move its tab label without
+ * rebuilding the pane the DM is typing into.
+ */
+export function renderTabs(){
+  el('tabStrip').innerHTML =
     `<button data-p="scenes">Сцени</button><button data-p="tokens">Токени</button>`
-    + regs().map(r => `<button data-p="reg-${esc(r.id)}">${esc(r.sym || '')} ${esc(r.nm)}</button>`).join('')
-    + `<button class="plus eonly" data-addreg title="Новий список локацій">＋</button>`;
+    + regs().map(r => `<button data-p="reg-${esc(r.id)}">${esc(r.sym || '')} ${esc(r.nm)}</button>`).join('');
+  markActive();
 }
 
 function showTab(){
   // A registry tab can disappear while it is open.
   if (tab.startsWith('reg-') && !reg(tab.slice(4))) tab = 'scenes';
-  document.querySelectorAll('#tabs button[data-p]')
-    .forEach(b => b.classList.toggle('on', b.dataset.p === tab));
+  markActive();
   document.querySelectorAll('.pane')
     .forEach(p => p.classList.toggle('on', p.id === 'p-' + tab));
+}
+
+function markActive(){
+  let active = null;
+  document.querySelectorAll('#tabStrip button[data-p]').forEach(b => {
+    const on = b.dataset.p === tab;
+    b.classList.toggle('on', on);
+    if (on) active = b;
+  });
+  // The strip scrolls, so a tab selected from elsewhere — a new list, or one
+  // reached through the inspector — has to bring itself into view.
+  if (active && active.scrollIntoView){
+    active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
 }
 
 /* ---------- scenes ---------- */
