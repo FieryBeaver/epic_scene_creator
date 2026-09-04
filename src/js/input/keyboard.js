@@ -8,6 +8,7 @@ import { delScene, delConn, duplicateScene } from '../core/model.js';
 import { isTyping } from '../util/dom.js';
 import { fitAll } from '../ui/camera.js';
 import { toggle as toggleMinimap } from '../ui/minimap.js';
+import { toggleShortcuts } from '../ui/shortcuts.js';
 import { renderAll, deselect, select } from '../ui/render.js';
 import { isLinking, stopLink } from './linkmode.js';
 import { createSceneAtCenter } from './scenes.js';
@@ -45,6 +46,7 @@ function onKeyDown(ev){
 
   if (isTyping() || ev.ctrlKey || ev.metaKey || ev.altKey) return;
 
+  if (ev.key === '?'){ toggleShortcuts(); return; }
   if (ev.key === 'v'){ setMode(mode === 'view' ? 'edit' : 'view'); return; }
   if (ev.key === 'f'){ fitAll(); return; }
   if (ev.key === 'm'){ toggleMinimap(); return; }

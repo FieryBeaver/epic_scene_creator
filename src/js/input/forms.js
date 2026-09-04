@@ -7,13 +7,15 @@
  * since the choice can change which fields exist.
  */
 
-import { sel, setSel, byId, mark, scene, conn, token } from '../core/state.js';
-import { locs, mkLoc } from '../core/locations.js';
+import { sel, setSel, byId, mark, scene, conn, token, reg, uid } from '../core/state.js';
+import { locs, mkLoc, locName } from '../core/locations.js';
 import { place } from '../core/registries.js';
 import { setPath } from '../core/paths.js';
 import { mkToken, newDanger, newBlock, newEvent } from '../core/model.js';
 import { TPL_DANGER, TPL_BLOCK, TPL_TREASURE, TPL_EVENT, TPL_CONN } from '../core/templates.js';
 import { renderAll, renderLive } from '../ui/render.js';
+import { toast } from '../util/dom.js';
+import { setSearch, markSearchFocused } from '../ui/rail.js';
 
 /** Debounce for the cheap re-render while typing. */
 const LIVE_DELAY = 200;
@@ -32,6 +34,13 @@ function fieldValue(el){
 
 function onInput(ev){
   const el = ev.target;
+
+  if (el.id === 'sceneSearch'){
+    markSearchFocused();
+    setSearch(el.value);
+    return;
+  }
+
   const path = el.getAttribute && el.getAttribute('data-path');
   if (!path) return;
   setPath(path, fieldValue(el));
@@ -46,6 +55,7 @@ function onChange(ev){
   if (el.hasAttribute('data-fire')) return fireEvent(el);
   if (el.hasAttribute('data-path')) return changePath(el);
   if (el.hasAttribute('data-setitem')) return setRegistryItemScene(el);
+  if (el.hasAttribute('data-toreg')) return roomJoinsList(el);
   if (el.hasAttribute('data-movetok')) return moveToken(el);
   if (el.hasAttribute('data-boss-tpl')) return spawnBoss(el);
   if (el.hasAttribute('data-tpl')) return applyTemplate(el);
@@ -92,6 +102,39 @@ function setRegistryItemScene(el){
   const [regId, itemId] = el.getAttribute('data-setitem').split(':');
   place(regId, itemId, el.value);
   renderAll();
+}
+
+/**
+ * A room becomes an entry in a list: a new item is created from the room's
+ * own name and description, and the room is bound to it. The description
+ * moves onto the item, since that is where v4 keeps it.
+ */
+function roomJoinsList(el){
+  const [sceneId, locId] = el.getAttribute('data-toreg').split(':');
+  const regId = el.value;
+  el.value = '';
+  if (!regId) return;
+
+  const s = scene(sceneId);
+  const l = s && byId(locs(s), locId);
+  const r = reg(regId);
+  if (!l || !r) return;
+
+  const item = {
+    id: uid('i'),
+    nm: (l.nm || locName(l)).trim(),
+    sym: '',
+    note: '',
+    desc: l.notes || '',
+  };
+  r.items.push(item);
+
+  l.reg = { [regId]: item.id };
+  l.nm = '';          // the item's name is the room's name now
+  l.notes = '';       // and its description lives on the item
+  mark();
+  renderAll();
+  toast(`«${item.nm}» додано до списку «${r.nm}»`);
 }
 
 /* ---------- tokens ---------- */

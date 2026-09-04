@@ -6,6 +6,7 @@
  * back, so forms stay declarative markup instead of hundreds of listeners.
  *
  * Shapes:
+ *   b:title                                   — a field on the board itself
  *   s:<sceneId>:name                          — a field on the scene
  *   c:<connId>:desc                           — a field on the connection
  *   t:<tokenId>:hp                            — a field on the token
@@ -14,13 +15,17 @@
  *   s:<sceneId>:locations:<locId>:links:<linkId>:url  — one level deeper
  */
 
-import { byId, mark, scene, conn, token, reg } from './state.js';
+import { S, byId, mark, scene, conn, token, reg } from './state.js';
 
 const ROOTS = { s: scene, c: conn, t: token, r: reg };
 
 /** Resolve a path to `{obj, key}`, or null when anything along it is gone. */
 export function resolve(path){
   const p = String(path).split(':');
+
+  // `b:<field>` is the board itself — the title and nothing else so far.
+  if (p[0] === 'b' && p.length === 2) return { obj: S, key: p[1] };
+
   const root = ROOTS[p[0]];
   const obj = root ? root(p[1]) : null;
   if (!obj) return null;

@@ -14,6 +14,7 @@ import { el } from '../util/dom.js';
 import { sceneOptions } from './inspector/shared.js';
 
 let tab = 'scenes';
+let query = '';
 
 export function setTab(name){
   tab = name;
@@ -65,12 +66,27 @@ function markActive(){
 /* ---------- scenes ---------- */
 
 export function renderPaneScenes(){
-  let h = `<h3>Сцени · ${S.scenes.length}</h3>`;
-  if (!S.scenes.length){
-    h += `<p class="hint">Ще немає сцен. Натисніть «+ Сцена» або «Демо-розкладка».</p>`;
+  const hits = S.scenes.filter(matches);
+  const filtering = !!query;
+
+  let h = `<h3>Сцени · ${filtering ? `${hits.length} з ${S.scenes.length}` : S.scenes.length}</h3>`;
+
+  if (S.scenes.length > 4 || filtering){
+    h += `<div class="srch">
+      <input type="search" id="sceneSearch" class="srch-in" placeholder="Пошук сцен, ДМ, кімнат…"
+        aria-label="Пошук сцен" value="${esc(query)}">
+      ${filtering ? `<button class="srch-x" data-search-clear title="Очистити">✕</button>` : ''}
+    </div>`;
   }
 
-  S.scenes.forEach(s => {
+  if (!S.scenes.length){
+    h += `<p class="hint">Ще немає сцен. Натисніть <b>+ Сцена</b>,
+      або відкрийте <b>⋯ → Демо-розкладка</b>.</p>`;
+  } else if (!hits.length){
+    h += `<p class="hint">Нічого не знайдено за «${esc(query)}».</p>`;
+  }
+
+  hits.forEach(s => {
     const active = sel && sel.kind === 'scene' && sel.id === s.id;
     const dangers = s.dangers.filter(d => d.active !== false).length;
     const blocks = s.blocks.filter(b => !b.done).length;
@@ -89,6 +105,51 @@ export function renderPaneScenes(){
   });
 
   el('p-scenes').innerHTML = h;
+  restoreSearchFocus();
+}
+
+/**
+ * Match on everything a DM might remember a scene by — its name, who runs
+ * it, and what is in it. Searching only titles would miss "which table has
+ * the alchemy stash?", which is the question people actually arrive with.
+ */
+function matches(s){
+  if (!query) return true;
+  const q = query.toLowerCase();
+  if (s.name.toLowerCase().includes(q)) return true;
+  if ((s.dm || '').toLowerCase().includes(q)) return true;
+  if ((s.notes || '').toLowerCase().includes(q)) return true;
+  if (locs(s).some(l => locName(l).toLowerCase().includes(q))) return true;
+  return [...s.dangers, ...s.blocks, ...s.events]
+    .some(x => (x.nm || '').toLowerCase().includes(q));
+}
+
+export function setSearch(next){
+  query = next || '';
+  renderPaneScenes();
+}
+
+export function clearSearch(){
+  setSearch('');
+  const box = el('sceneSearch');
+  if (box) box.focus();
+}
+
+/** The pane is rebuilt on every keystroke, so put the caret back. */
+function restoreSearchFocus(){
+  if (!searchHadFocus) return;
+  const box = el('sceneSearch');
+  if (!box) return;
+  box.focus();
+  const end = box.value.length;
+  try { box.setSelectionRange(end, end); } catch { /* not supported */ }
+  searchHadFocus = false;
+}
+
+let searchHadFocus = false;
+
+export function markSearchFocused(){
+  searchHadFocus = true;
 }
 
 /* ---------- tokens ---------- */

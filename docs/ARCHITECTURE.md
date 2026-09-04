@@ -53,6 +53,10 @@ Everything renders from state; nothing here decides what the state should be.
 | `nodes.js` | Node height cache (see *Measurement*, below). |
 | `camera.js` | Pan, zoom, the grid canvas, `fitAll`, `focusScene`. Publishes viewport changes so the minimap can follow without a cycle. |
 | `minimap.js` | Whole-board overview with a viewport marker; click or drag to travel. |
+| `selbar.js` | Bulk actions, shown only while several scenes are picked. |
+| `shortcuts.js` | The keyboard reference behind `?`. |
+| `dirty.js` | The dot on Export saying the file on disk is behind. |
+| `inspector/folds.js` | Which sections are open, per device. |
 | `rail.js` | The left tab strip and its panes, including one per registry. |
 | `inspector/` | The right panel: `scene.js`, `connection.js`, `token.js` for editing, `readonly.js` for view mode, `shared.js` for the fragments both use. |
 | `panels.js` | Side panel widths and collapse, stored on the board. |
@@ -109,6 +113,26 @@ A node drag would otherwise re-render 12 cards and 19 edges per frame. Instead
 the card is moved with a `transform`, and `moveEdgesOf()` updates only the
 wires touching it, straight through the DOM. The real `left`/`top` are written
 once on pointerup.
+
+## Interface conventions
+
+- **The board names itself.** The heading is `S.title`, edited in place; the
+  app name beside it is fixed. One tool, many campaigns.
+- **Grouped toolbar with an overflow.** Nine flat buttons read as nine
+  decisions; three groups and a `⋯` read as three. What is rare (import, demo,
+  clear) lives in the menu, what is constant does not.
+- **Bulk actions appear with a selection** and next to it, rather than sitting
+  disabled the rest of the time.
+- **Progressive disclosure in the inspector.** Nine open fieldsets was a wall
+  of form; each is now a section with its count in the header — enough
+  information scent to decide whether to open it. Empty sections start closed,
+  and what a DM opens stays open on that device.
+- **Search covers what people remember.** Not just scene names: DM, notes,
+  room, danger, block and event names, because the question is usually "which
+  table has the alchemy stash".
+- **One save indicator, on the thing that saves.** The board autosaves locally
+  and, when connected, to the repo; only the file on disk can be behind, so
+  that is what the dot on Export means.
 
 ## Borrowed from node editors
 

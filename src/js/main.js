@@ -17,6 +17,8 @@ import { applyPanels, initPanels } from './ui/panels.js';
 import { renderAll, renderPreservingFocus } from './ui/render.js';
 import { initSyncPanel, renderStatus } from './ui/sync-panel.js';
 import { initMinimap } from './ui/minimap.js';
+import { initSelBar } from './ui/selbar.js';
+import { initShortcuts } from './ui/shortcuts.js';
 import { toast } from './util/dom.js';
 import { initActions } from './input/actions.js';
 import { initForms } from './input/forms.js';
@@ -73,6 +75,8 @@ function start(){
   initForms();
   initKeyboard();
   initSyncPanel(sync);
+  initSelBar();
+  initShortcuts();
 
   stopLink();
   applyPanels();

@@ -19,7 +19,7 @@ export function blank(){
   return {
     app: BOARD_APP,
     version: BOARD_VERSION,
-    title: 'Друга фаза — дослідження підземелля',
+    title: 'Нова дошка',
     scenes: [],
     connections: [],
     tokens: [],

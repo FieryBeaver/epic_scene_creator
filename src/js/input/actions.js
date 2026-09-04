@@ -17,7 +17,8 @@ import { setPath } from '../core/paths.js';
 import { renderAll, renderLive, select } from '../ui/render.js';
 import { focusScene } from '../ui/camera.js';
 import { renderInsp } from '../ui/inspector/index.js';
-import { setTab } from '../ui/rail.js';
+import { setTab, clearSearch } from '../ui/rail.js';
+import { toggleSection } from '../ui/inspector/folds.js';
 import { startLink } from './linkmode.js';
 
 export function initActions(){
@@ -31,6 +32,7 @@ function onClick(ev){
   let e;
 
   /* ---------- navigation ---------- */
+  if ((e = hit('data-room'))){ openRoom(e.getAttribute('data-room')); return; }
   if ((e = hit('data-goto'))){ focusScene(e.getAttribute('data-goto')); return; }
   if ((e = hit('data-selconn'))){ select('conn', e.getAttribute('data-selconn')); return; }
   if ((e = hit('data-seltoken'))){ select('token', e.getAttribute('data-seltoken')); return; }
@@ -78,6 +80,16 @@ function onClick(ev){
   if ((e = hit('data-additem'))){ addRegistryItem(e.getAttribute('data-additem')); return; }
   if ((e = hit('data-delitem'))){ delRegistryItem(e.getAttribute('data-delitem')); return; }
 
+  if (target.closest('[data-search-clear]')){ clearSearch(); return; }
+
+  /* ---------- fold an inspector section ---------- */
+  if ((e = hit('data-section'))){
+    const section = e.closest('.isect');
+    toggleSection(e.getAttribute('data-section'), section && section.classList.contains('open'));
+    renderInsp();
+    return;
+  }
+
   /* ---------- fold a card shut ---------- */
   if ((e = hit('data-fold'))){
     const s = scene(e.getAttribute('data-fold'));
@@ -92,6 +104,39 @@ function onClick(ev){
     if (action === 'open') select('scene', id);
     if (action === 'link') startLink(id);
   }
+}
+
+/**
+ * `data-room="<sceneId>:<locId>"` — a room chip on a card.
+ *
+ * Opens the scene and takes the panel to that room rather than to the top of
+ * a long form. In view mode this is the whole point: the chip is the shortest
+ * route from "what is in this scene" to the paragraph the DM reads out.
+ */
+function openRoom(spec){
+  const [sceneId, locId] = spec.split(':');
+  select('scene', sceneId);
+
+  // The panel has just been rebuilt, so wait a frame before finding the room.
+  requestAnimationFrame(() => {
+    const panel = document.getElementById('insp');
+    let room = panel.querySelector(`[data-room-id="${CSS.escape(locId)}"]`);
+
+    // In edit mode the rooms section may be folded shut.
+    if (!room){
+      const head = [...panel.querySelectorAll('.isect-head')]
+        .find(h => h.getAttribute('data-section') === 'rooms');
+      if (head && head.getAttribute('aria-expanded') === 'false'){
+        head.click();
+        room = panel.querySelector(`[data-room-id="${CSS.escape(locId)}"]`);
+      }
+    }
+    if (!room) return;
+
+    room.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    room.classList.add('flash');
+    setTimeout(() => room.classList.remove('flash'), 1400);
+  });
 }
 
 /** Danger level pips: `<span class="lvl" data-lvl="…"><button data-v="2">`. */

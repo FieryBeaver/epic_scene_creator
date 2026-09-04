@@ -1,11 +1,12 @@
 # Epic Scene Creator
 
-A scene board for running a **multi-table D&D epic**. One pannable map holds
-every scene of the dungeon, who is running it, what is dangerous in it, what
-is locked, and which other table holds the answer.
+**Дошка сцен** — a scene board for running a **multi-table D&D epic**. One
+pannable map holds every scene of the dungeon, who is running it, what is
+dangerous in it, what is locked, and which other table holds the answer.
 
-Built for *Tomb of Annihilation — Tomb of the Nine Gods*, but nothing in the
-tool is specific to it beyond the starting lists, which are editable.
+Each board carries its own name, so one install serves any number of
+campaigns. The starting lists are seeded from *Tomb of Annihilation — Tomb of
+the Nine Gods*, and are editable like any other list.
 
 **[Open the board →](https://fierybeaver.github.io/epic_scene_creator/)**
 · [User guide (українською)](docs/USAGE.md)
@@ -37,6 +38,7 @@ those threads visible.
 | **Tokens** | Parties, scouts, allies, bosses that broke through. Drag them between scenes and passages. |
 | **Registries** | Lists of unique things (the nine tombs, the five keys, anything you add). Each item lives in exactly one room, board-wide. |
 | **View mode** | Read-only briefing for the table: every reference becomes a jump button. Counters and tokens still work. |
+| **Board handling** | Curved wires, a minimap, Shift-drag box selection, group move, duplicate, fold-to-header — the conventions from React Flow and Blender's node editors. |
 | **Shared board** | Several DMs, several devices, one dungeon — the board syncs through a JSON file in a private GitHub repo. Scenes merge individually, so two tables never overwrite each other. |
 
 There is no server. The board lives in the page and is autosaved to the

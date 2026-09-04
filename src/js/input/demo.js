@@ -38,6 +38,7 @@ const ROW_H = 320;
 /** Replace the board with the demo layout. Does not render. */
 export function buildDemoBoard(){
   setBoard(blank());
+  S.title = 'Гробниця Дев\'яти Богів — демо';
   setSel(null);
 
   layoutScenes();

@@ -68,7 +68,7 @@ export function deserialize(raw){
   const board = {
     app: BOARD_APP,
     version: BOARD_VERSION,
-    title: str(raw.title, 'Друга фаза — дослідження підземелля'),
+    title: str(raw.title, 'Нова дошка'),
     scenes: [],
     connections: [],
     tokens: [],

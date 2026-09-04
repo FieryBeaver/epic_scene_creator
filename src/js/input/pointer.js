@@ -316,7 +316,9 @@ function onWheel(wrap, ev){
 
 function onDblClick(ev){
   if (mode === 'view') return;
-  if (ev.target.closest('.node, [data-conn], #hud')) return;
+  // Only bare board makes a scene. Everything with its own meaning — a card,
+  // a passage and its label, the HUD, the minimap, the selection bar — is out.
+  if (ev.target.closest('.node, [data-conn], .elabel, #hud, #minimap, #selBar, #modeBar')) return;
   const w = screenToWorld(ev.clientX, ev.clientY);
   createSceneAt(Math.round((w.x - NODE_W / 2) / SNAP) * SNAP, Math.round((w.y - 40) / SNAP) * SNAP);
 }

@@ -13,24 +13,46 @@ import { TPL_DANGER, TPL_BLOCK, TPL_TREASURE, TPL_EVENT } from '../../core/templ
 import { esc, safeColor } from '../../util/html.js';
 import { SIDE_SYM } from '../../util/geometry.js';
 import { sceneOptions, srcRef, srcLocField, owedLoc, renderLinks } from './shared.js';
+import { isOpen } from './folds.js';
 
 export function inspScene(s){
   if (!s) return '';
+  const owed = owedBy(s.id);
   return `<div class="ihead">
       <div class="t">${esc(s.name)}</div>
       <div class="s">Сцена${s.dm ? ' · ДМ ' + esc(s.dm) : ''}</div>
     </div>
     <div class="ipad">
       ${sectionBasics(s)}
-      ${sectionDangers(s)}
-      ${sectionBlocks(s)}
-      ${sectionRooms(s)}
-      ${sectionCounters(s)}
-      ${sectionConnections(s)}
-      ${sectionTokens(s)}
-      ${sectionEvents(s)}
-      ${sectionOwed(s)}
+      ${fold('rooms',  'Кімнати',   locs(s).length,          sectionRooms(s))}
+      ${fold('danger', 'Небезпеки', s.dangers.length,        sectionDangers(s))}
+      ${fold('block',  'Блоки',     s.blocks.length,         sectionBlocks(s))}
+      ${fold('event',  'Івенти',    s.events.length,         sectionEvents(s))}
+      ${fold('conn',   "З'єднання", connsOf(s.id).length,    sectionConnections(s))}
+      ${fold('token',  'Токени',    tokensAt('scene', s.id).length, sectionTokens(s))}
+      ${fold('ctr',    'Лічильники', s.counters.length,      sectionCounters(s))}
+      ${fold('owed',   "Ця сцена розв'язує", owed.length,    sectionOwed(s, owed))}
     </div>`;
+}
+
+/**
+ * One collapsible section.
+ *
+ * Nine fieldsets open at once is a wall of form. Folding them puts the count
+ * in the header instead — enough to decide whether to look inside, which is
+ * the whole test for progressive disclosure. Empty sections start closed;
+ * whatever the DM opens stays open, per device.
+ */
+function fold(key, title, count, body){
+  const open = isOpen(key, count > 0);
+  return `<section class="isect${open ? ' open' : ''}">
+    <button class="isect-head" data-section="${key}" aria-expanded="${open}">
+      <span class="caret">${open ? '▾' : '▸'}</span>
+      <span class="ft">${esc(title)}</span>
+      <span class="fc${count ? '' : ' zero'}">${count}</span>
+    </button>
+    ${open ? `<div class="isect-body">${body}</div>` : ''}
+  </section>`;
 }
 
 /** Dropdown that fills a new item from one of the prepared templates. */
@@ -173,7 +195,7 @@ function sectionRooms(s){
     const p = `s:${esc(s.id)}:locations:${esc(l.id)}`;
     const block = blockOnLoc(s, l.id);
     const owner = regRoom(l);
-    h += `<div class="item loi">
+    h += `<div class="item loi" data-room-id="${esc(l.id)}">
       ${owner ? identityRow(owner) : ''}
       <div class="ih">
         <input type="text" placeholder="${esc(locName(l))}" data-path="${p}:nm" value="${esc(l.nm)}">
@@ -209,6 +231,7 @@ function sectionRooms(s){
         ? `Перекрита блоком «${esc(block.nm)}»${block.done ? ' (вирішено)' : ''}`
         : 'Вільна. Щоб перекрити — у блоці цієї сцени вкажіть ціллю цю кімнату.'}</div>
       ${answersHere(owed, l)}
+      ${joinList(s, l, owner)}
     </div>`;
   });
 
@@ -264,6 +287,24 @@ function answersHere(owed, l){
 function solvedTag(o){
   const solved = o.kind === 'danger' ? o.it.active === false : !!o.it.done;
   return solved ? ' (закрито)' : '';
+}
+
+/**
+ * Put an existing room into one of the lists.
+ *
+ * The chips below create a room for an item that already exists. This is the
+ * other direction, and the one that comes up while writing: the cave you just
+ * described turns out to be worth tracking, so it becomes an entry — keeping
+ * its name and its description.
+ */
+function joinList(s, l, owner){
+  if (owner || !regs().length) return '';
+  return `<label class="f eonly" style="margin-top:6px">
+    <span>Додати цю кімнату до списку</span>
+    <select data-toreg="${esc(s.id)}:${esc(l.id)}">
+      <option value="">— не в списку —</option>
+      ${regs().map(r => `<option value="${esc(r.id)}">${esc(r.sym || '◆')} ${esc(r.nm)}</option>`).join('')}
+    </select></label>`;
 }
 
 /**
@@ -386,8 +427,7 @@ function sectionEvents(s){
 
 /* ---------- what this scene unlocks elsewhere ---------- */
 
-function sectionOwed(s){
-  const owed = owedBy(s.id);
+function sectionOwed(s, owed){
   let h = `<fieldset><legend>Ця сцена розв'язує · ${owed.length}</legend>`;
   if (!owed.length){
     h += `<div class="empty">Ніхто не чекає рішення звідси. `

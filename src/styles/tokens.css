@@ -85,6 +85,8 @@ label.f>span{display:block;font-size:11px;color:var(--dim);margin-bottom:2px}
 .lnk:hover{background:#1C2F3C;color:#CFE7F5;border-color:#54809B}
 
 .hint{color:var(--dim);font-size:12px;margin:0 0 9px}
+.hint kbd,ul.tight kbd{font:inherit;font-size:11px;color:var(--bone);background:#0E1412;
+  border:1px solid var(--line);border-radius:3px;padding:0 4px}
 .empty{color:var(--dim);font-size:12px;font-style:italic;padding:3px 0}
 .sep{height:1px;background:var(--line);margin:10px 0}
 ul.tight{margin:4px 0 0;padding-left:17px}
@@ -96,3 +98,14 @@ ul.tight li{margin-bottom:2px}
   box-shadow:0 8px 24px #000a}
 @media (prefers-reduced-motion:no-preference){.toast{animation:pop .18s ease-out}}
 @keyframes pop{from{opacity:0;transform:translate(-50%,8px)}}
+
+/* ---------- keyboard reference ---------- */
+.keys{margin-bottom:14px}
+.keys h4{font-family:var(--serif);font-size:13px;font-weight:600;margin:0 0 6px;
+  color:var(--jade);border-bottom:1px solid var(--line);padding-bottom:3px}
+.krow{display:flex;gap:10px;align-items:baseline;padding:2px 0;font-size:12.5px}
+.krow kbd{flex:0 0 190px;font:inherit;font-size:11.5px;color:var(--bone);
+  border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+  padding:1px 6px;background:#0E1412;text-align:center}
+.krow span{color:#CBD3C9}
+@media(max-width:520px){.krow kbd{flex-basis:120px}}

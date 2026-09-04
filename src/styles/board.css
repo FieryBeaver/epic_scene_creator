@@ -44,15 +44,31 @@
 .node.dim{opacity:.35}
 .node.hl{box-shadow:0 0 0 2px var(--jade),0 8px 22px #0009}
 .node.marked{outline:2px dashed var(--ochre);outline-offset:2px}
-.node .head{padding:7px 9px 6px 24px;cursor:grab;border-bottom:1px solid #ffffff10;position:relative}
-.node .fold{position:absolute;left:5px;top:6px;width:15px;height:15px;padding:0;line-height:1;
+/* The header is the drag handle, so it has to look like one: its own darker
+   band, a grip, and a hard edge against the body. */
+.node .head{
+  padding:7px 9px 7px 34px;cursor:grab;position:relative;
+  background:linear-gradient(180deg,#2A3630,#222C27);
+  border-bottom:1px solid var(--line);
+  border-radius:2px 4px 0 0;
+}
+.node .head::after{
+  content:"";position:absolute;left:20px;top:9px;width:6px;height:calc(100% - 18px);
+  min-height:9px;opacity:.45;
+  background-image:radial-gradient(currentColor 1px, transparent 1px);
+  background-size:3px 3px;color:var(--dim);
+}
+.node .head:hover{background:linear-gradient(180deg,#314038,#26312B)}
+.node .head:hover::after{opacity:.8;color:var(--jade)}
+.node .head:active{cursor:grabbing}
+.node.sel .head{background:linear-gradient(180deg,#3A3020,#2A241A)}
+.node .fold{position:absolute;left:4px;top:7px;width:15px;height:15px;padding:0;line-height:1;
   background:none;border:0;color:var(--dim);font-size:11px}
 .node .fold:hover{color:var(--jade)}
 .node.folded{width:236px}
 .node.folded .head{border-bottom:0}
-.fold-sum{display:flex;gap:8px;padding:0 9px 7px 24px;font-size:11px;color:var(--dim);
+.fold-sum{display:flex;gap:8px;padding:6px 9px 7px 34px;font-size:11px;color:var(--dim);
   font-variant-numeric:tabular-nums}
-.node .head:active{cursor:grabbing}
 .node .nm{font-family:var(--serif);font-size:14.5px;font-weight:600;line-height:1.25}
 .node .dm{font-size:11px;color:var(--dim);margin-top:1px}
 .node .body{padding:6px 9px 8px;display:flex;flex-direction:column;gap:5px}
@@ -80,3 +96,18 @@
 #marquee{position:absolute;border:1px solid var(--ochre);background:#D08A3422;
   pointer-events:none;z-index:20;border-radius:2px}
 #marquee[hidden]{display:none}
+
+/* ---------- bulk actions ---------- */
+/* Appears only while several scenes are picked: the actions that make sense
+   for a group, where the group is. */
+#selBar{position:absolute;left:50%;transform:translateX(-50%);top:12px;z-index:15;
+  display:flex;align-items:center;gap:6px;
+  background:#3A2C15EE;border:1px solid var(--ochre);border-radius:var(--r);
+  padding:5px 8px;color:#F5D9AE;box-shadow:0 8px 24px #0009}
+#selBar[hidden]{display:none}
+#selBar .n{font-variant-numeric:tabular-nums;padding:0 4px;white-space:nowrap}
+#selBar .btn{background:#00000033;border-color:#6A4C21;color:#F5D9AE;padding:2px 8px;font-size:12px}
+#selBar .btn:hover{background:#5C4520;border-color:var(--ochre)}
+#selBar kbd{font:inherit;font-size:10.5px;opacity:.65;margin-left:4px;
+  border:1px solid #6A4C21;border-radius:3px;padding:0 3px}
+#modeBar.on ~ #selBar{top:52px}

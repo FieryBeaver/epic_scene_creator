@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Дошка сцен — Гробниця Дев'яти Богів</title>
-<meta name="description" content="Дошка сцен для епічної кампанії на кілька столів: сцени, переходи, небезпеки, блоки, івенти й токени.">
+<title>Дошка сцен</title>
+<meta name="description" content="Дошка сцен для кампанії на кілька столів: сцени, переходи, небезпеки, блоки, івенти й токени на одній мапі.">
 <!-- Two scenes and a passage, drawn inline so the standalone file stays self-contained. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%2318201C%27/%3E%3Cpath d=%27M10 11L22 21%27 stroke=%27%2354685C%27 stroke-width=%272.5%27/%3E%3Ccircle cx=%2710%27 cy=%2711%27 r=%274.5%27 fill=%27%2354BE9B%27/%3E%3Ccircle cx=%2722%27 cy=%2721%27 r=%274.5%27 fill=%27%23D08A34%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,17 +19,46 @@
 <body>
 <div id="app">
   <header id="top">
-    <h1>Гробниця <span>Дев'яти Богів</span> · дошка сцен</h1>
-    <button class="btn eonly" id="bAddScene">+ Сцена</button>
-    <button class="btn eonly" id="bLink">🔗 З'єднати</button>
-    <button class="btn" id="bFit">Вмістити все</button>
-    <button class="btn" id="bMode">👁 Режим перегляду</button>
+    <div class="brand" title="Дошка сцен">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M10 11L22 21" stroke="#54685C" stroke-width="2.5"/>
+        <circle cx="10" cy="11" r="4.5" fill="#54BE9B"/>
+        <circle cx="22" cy="21" r="4.5" fill="#D08A34"/>
+      </svg>
+      <span class="app">Дошка сцен</span>
+    </div>
+
+    <input id="boardTitle" class="btitle" data-path="b:title"
+      placeholder="Назва дошки" aria-label="Назва дошки" spellcheck="false">
+
     <div class="spacer"></div>
+
+    <div class="tgroup eonly">
+      <button class="btn" id="bAddScene" title="Нова сцена (n)">+ Сцена</button>
+      <button class="btn" id="bLink" title="З'єднати дві сцени">🔗 З'єднати</button>
+    </div>
+
+    <div class="tgroup">
+      <button class="btn" id="bFit" title="Вмістити все (f)">Вмістити</button>
+      <button class="btn" id="bMode" title="Перемкнути режим (v)">👁 Перегляд</button>
+    </div>
+
     <button id="bSync" aria-live="polite" title="Спільна дошка"></button>
-    <button class="btn" id="bImport">Імпорт JSON</button>
-    <button class="btn acc" id="bExport">Експорт JSON</button>
-    <button class="btn eonly" id="bDemo">Демо-розкладка</button>
-    <button class="btn warn eonly" id="bClear">Очистити</button>
+
+    <div class="tgroup">
+      <button class="btn acc" id="bExport" title="Зберегти у файл">Експорт<i class="dirty" hidden></i></button>
+      <button class="btn" id="bMore" aria-haspopup="menu" aria-expanded="false"
+        title="Ще">⋯</button>
+    </div>
+
+    <div id="moreMenu" class="menu" hidden role="menu">
+      <button role="menuitem" data-more="import">Імпорт JSON…</button>
+      <button role="menuitem" data-more="help">Гарячі клавіші <kbd>?</kbd></button>
+      <div class="msep eonly"></div>
+      <button role="menuitem" class="eonly" data-more="demo">Демо-розкладка</button>
+      <button role="menuitem" class="eonly warn" data-more="clear">Очистити дошку</button>
+    </div>
+
     <input type="file" id="fileIn" accept=".json,application/json" hidden>
   </header>
 
@@ -54,6 +83,7 @@
         <svg id="edges"></svg>
       </div>
       <div id="modeBar"></div>
+      <div id="selBar" hidden></div>
       <div id="hud">
         <button class="btn sm" id="zOut">−</button>
         <span class="z" id="zLbl">100%</span>
@@ -70,6 +100,7 @@
     <aside id="insp"></aside>
   </div>
   <div class="modal" id="syncModal" hidden></div>
+  <div class="modal" id="helpModal" hidden></div>
 </div>
 <script type="module" src="./js/main.js"></script>
 </body>

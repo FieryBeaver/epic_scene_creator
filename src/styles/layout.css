@@ -12,12 +12,55 @@
 #top::-webkit-scrollbar{display:none}
 #top>*{flex:0 0 auto}
 #top .spacer{flex:1 1 auto;min-width:6px}
-#top h1{
-  font-family:var(--serif);font-weight:600;font-size:17px;margin:0 14px 0 0;letter-spacing:.2px;
-  white-space:nowrap;
-}
-#top h1 span{color:var(--jade)}
 .spacer{flex:1}
+
+/* ---------- brand and board title ---------- */
+.brand{display:flex;align-items:center;gap:7px;padding-right:12px;margin-right:2px;
+  border-right:1px solid var(--line)}
+.brand .mark{width:19px;height:19px;flex:0 0 auto}
+.brand .app{font-family:var(--serif);font-weight:600;font-size:15px;letter-spacing:.2px;
+  white-space:nowrap;color:var(--bone)}
+body.view .brand .app{color:var(--ochre)}
+
+.btitle{
+  flex:0 1 320px;min-width:120px;width:auto;
+  font-family:var(--serif);font-size:16px;font-weight:600;
+  background:transparent;border:1px solid transparent;border-radius:4px;padding:3px 7px;
+  color:var(--jade);text-overflow:ellipsis;
+}
+.btitle:hover{border-color:var(--line);background:#0E141244}
+.btitle:focus{border-color:var(--jade);background:#0E1412;color:var(--bone)}
+.btitle::placeholder{color:var(--dim);font-style:italic;font-weight:500}
+body.view .btitle{color:var(--ochre);pointer-events:none}
+
+/* ---------- toolbar groups ---------- */
+/* Buttons that answer the same question sit together; the groups are what
+   make nine controls read as three. */
+.tgroup{display:flex;align-items:center;gap:1px}
+.tgroup .btn{border-radius:0}
+.tgroup .btn:first-child{border-top-left-radius:var(--r);border-bottom-left-radius:var(--r)}
+.tgroup .btn:last-child{border-top-right-radius:var(--r);border-bottom-right-radius:var(--r)}
+.tgroup .btn:only-child{border-radius:var(--r)}
+.tgroup .btn + .btn{border-left-color:#0006}
+
+#bExport{position:relative}
+#bExport .dirty{position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;
+  background:var(--ochre);box-shadow:0 0 0 2px #20463A}
+#bExport .dirty[hidden]{display:none}
+
+/* ---------- overflow menu ---------- */
+.menu{position:absolute;top:44px;right:12px;z-index:700;min-width:210px;
+  background:var(--stone);border:1px solid var(--line);border-radius:var(--r);
+  padding:4px;box-shadow:0 12px 32px #000a}
+.menu[hidden]{display:none}
+.menu button{display:flex;width:100%;align-items:center;gap:8px;text-align:left;
+  background:none;border:0;border-radius:4px;padding:6px 9px;color:var(--bone);font-size:13px}
+.menu button:hover{background:#54be9b1f}
+.menu button.warn{color:#F0B9B4}
+.menu button.warn:hover{background:#5C302C55}
+.menu kbd{margin-left:auto;font:inherit;font-size:11px;color:var(--dim);
+  border:1px solid var(--line);border-radius:3px;padding:0 4px}
+.msep{height:1px;background:var(--line);margin:4px 2px}
 
 /* ---------- columns ---------- */
 #main{display:grid;grid-template-columns:var(--railW,288px) 6px 1fr 6px var(--inspW,340px);min-height:0}

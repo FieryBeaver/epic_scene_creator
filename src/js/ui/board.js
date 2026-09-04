@@ -113,7 +113,8 @@ function nodeMarkup(s){
         locDesc(l) || 'кімната',
         ...answers.map(o => `↩ рішення для «${o.it.nm}» (${o.from.name})`),
       ].join(' · ');
-      return `<span class="chip" style="color:${col};border-color:${col}55;background:${col}14"`
+      return `<span class="chip clk" data-room="${esc(s.id)}:${esc(l.id)}"`
+        + ` style="color:${col};border-color:${col}55;background:${col}14"`
         + ` title="${esc(tip)}">${esc(locIcon(l))} ${esc(locName(l))}`
         + `${answers.length ? ' ↩' : ''}</span>`;
     }).join('') + `</div>`;
@@ -138,9 +139,8 @@ function nodeMarkup(s){
     }).join('') + `</div>`;
   }
 
-  h += `</div><div class="foot">`
-    + `<button class="mini eonly" data-act="link" data-id="${esc(s.id)}">з'єднати</button>`
-    + `<button class="mini" data-act="open" data-id="${esc(s.id)}">деталі</button>`
+  h += `</div><div class="foot eonly">`
+    + `<button class="mini" data-act="link" data-id="${esc(s.id)}">з'єднати</button>`
     + `</div>`;
 
   return h;

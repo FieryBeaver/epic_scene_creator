@@ -9,11 +9,15 @@ import { sel, setSel } from '../core/state.js';
 import { renderBoard } from './board.js';
 import { renderInsp } from './inspector/index.js';
 import { renderRail, renderPaneScenes, renderTabs, refreshRegPanes } from './rail.js';
+import { renderSelBar } from './selbar.js';
+import { renderDirty } from './dirty.js';
 
 export function renderAll(){
   renderBoard();
   renderInsp();
   renderRail();
+  renderSelBar();
+  renderDirty();
 }
 
 /**
@@ -26,6 +30,7 @@ export function renderLive(){
   renderPaneScenes();
   renderTabs();          // a list being renamed should retitle its own tab as you type
   refreshRegPanes();     // a room's description is also the list item's
+  renderDirty();
 }
 
 /**
