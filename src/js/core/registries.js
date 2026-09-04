@@ -8,7 +8,7 @@
  */
 
 import { S, mark, scene } from './state.js';
-import { locs, slots, mkLoc, locEmpty } from './locations.js';
+import { locs, slots, mkLoc, locEmpty, childrenOf } from './locations.js';
 
 /** Ids of a registry's items that are placed somewhere in this scene. */
 export function itemsIn(s, registryId){
@@ -29,7 +29,8 @@ export function clearSlot(registryId, itemId, keepLocId){
     locs(s).forEach(l => {
       if (slots(l)[registryId] === itemId && l.id !== keepLocId) delete l.reg[registryId];
     });
-    s.locations = locs(s).filter(l => !locEmpty(l));
+    // An empty room that still holds sub-rooms has to stay: it is the branch.
+    s.locations = locs(s).filter(l => !locEmpty(l) || childrenOf(s, l.id).length);
   });
 }
 

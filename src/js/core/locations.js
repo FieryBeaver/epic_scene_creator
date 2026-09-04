@@ -43,9 +43,82 @@ export function slotList(l){
 
 export function mkLoc(patch){
   return Object.assign({
-    id: uid('l'), nm: '', notes: '', reg: {},
+    id: uid('l'), nm: '', notes: '', reg: {}, parent: '',
     hasTre: false, tre: '', guard: '', taken: false, links: [],
   }, patch || {});
+}
+
+/* ============================================================
+   Nesting
+   ============================================================
+   Rooms hold rooms: a forge contains its bellows and its office. Storage
+   stays a flat list with a `parent` id — the alternative, nesting the arrays,
+   makes every existing walk over `locs(s)` wrong and every id lookup a
+   recursion.
+   ============================================================ */
+
+/** Direct children of a room, in board order. */
+export function childrenOf(s, parentId){
+  return locs(s).filter(l => (l.parent || '') === parentId);
+}
+
+/** Top-level rooms: the ones whose parent is gone or never set. */
+export function rootRooms(s){
+  const known = new Set(locs(s).map(l => l.id));
+  return locs(s).filter(l => !l.parent || !known.has(l.parent));
+}
+
+/** A room and everything under it, depth first. */
+export function subtree(s, id){
+  const out = [];
+  const walk = pid => childrenOf(s, pid).forEach(child => { out.push(child); walk(child.id); });
+  walk(id);
+  return out;
+}
+
+/** How deep a room sits, for indenting. */
+export function roomDepth(s, l){
+  let depth = 0;
+  let node = l;
+  const seen = new Set();
+  while (node && node.parent && !seen.has(node.id)){
+    seen.add(node.id);
+    node = byId(locs(s), node.parent);
+    if (node) depth++;
+  }
+  return depth;
+}
+
+/**
+ * May `id` be moved inside `parentId`? Not into itself, and not into its own
+ * descendant — that would cut the pair loose from the tree entirely.
+ */
+export function canNest(s, id, parentId){
+  if (!parentId) return true;
+  if (id === parentId) return false;
+  return !subtree(s, id).some(x => x.id === parentId);
+}
+
+/** Re-parent a room, refusing moves that would make a loop. */
+export function setParent(s, id, parentId){
+  if (!canNest(s, id, parentId)) return false;
+  const l = byId(locs(s), id);
+  if (!l) return false;
+  l.parent = parentId || '';
+  return true;
+}
+
+/**
+ * Remove a room, lifting its children to where it was.
+ *
+ * Deleting the subtree would be one click away from losing a whole wing of a
+ * dungeon, with no undo to reach for.
+ */
+export function removeRoom(s, id){
+  const gone = byId(locs(s), id);
+  if (!gone) return;
+  childrenOf(s, id).forEach(child => { child.parent = gone.parent || ''; });
+  s.locations = locs(s).filter(l => l.id !== id);
 }
 
 /** A room nobody filled in. Dropped automatically when slots are cleared. */

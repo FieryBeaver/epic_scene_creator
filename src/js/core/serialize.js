@@ -83,6 +83,7 @@ export function deserialize(raw){
   board.scenes = raw.scenes.map(s => readScene(s, uid));
   relinkLegacyBlocks(board.scenes);
   foldRegistryRooms(board.scenes, board.registries, uid);
+  untangleRoomNesting(board.scenes);
 
   const known = new Set(board.scenes.map(s => s.id));
   board.connections = (raw.connections || [])
@@ -198,6 +199,7 @@ function readLocations(s, uid){
     return {
       id: str(l.id) || uid('l'),
       nm: str(l.nm), notes: str(l.notes),
+      parent: str(l.parent),
       reg,
       hasTre: l.hasTre != null ? !!l.hasTre : l.kind === 'treasure',
       tre: str(l.tre), guard: str(l.guard), taken: !!l.taken,
@@ -300,6 +302,33 @@ function moveDescription(room, item){
   if (!item || !room.notes) return;
   if (!item.desc) item.desc = room.notes;
   room.notes = '';
+}
+
+/**
+ * Rooms nest, and a file can name a parent that is not there — deleted, in
+ * another scene, or part of a loop somebody made by hand. Any of those would
+ * hide the room from the tree entirely, so they are cut back to top level.
+ */
+function untangleRoomNesting(scenes){
+  scenes.forEach(scene => {
+    const byId = new Map(scene.locations.map(l => [l.id, l]));
+
+    scene.locations.forEach(l => {
+      if (l.parent && !byId.has(l.parent)) l.parent = '';   // gone, or elsewhere
+    });
+
+    // Walk up from each room; anything that fails to reach a root is in a loop.
+    scene.locations.forEach(l => {
+      const seen = new Set([l.id]);
+      let node = l;
+      while (node.parent){
+        if (seen.has(node.parent)){ l.parent = ''; break; }
+        seen.add(node.parent);
+        node = byId.get(node.parent);
+        if (!node) break;
+      }
+    });
+  });
 }
 
 function readConn(c, uid){

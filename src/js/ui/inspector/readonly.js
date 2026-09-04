@@ -7,9 +7,9 @@
  */
 
 import { scene, conn, regs, byId } from '../../core/state.js';
-import { connsOf, owedBy, tokensAt, blockOnLoc, blockTargetLabel } from '../../core/model.js';
-import { locs, isTreasure, locName, locIcon, locColor, slotList, locDesc, locLinks }
-  from '../../core/locations.js';
+import { connsOf, owedBy, tokensAt, blockOnLoc, blockOnConn, blockTargetLabel } from '../../core/model.js';
+import { locs, isTreasure, locName, locIcon, locColor, slotList, locDesc, locLinks,
+  rootRooms, childrenOf } from '../../core/locations.js';
 import { itemsIn } from '../../core/registries.js';
 import { tokenTypeColor } from '../../core/constants.js';
 import { t } from '../../i18n/index.js';
@@ -85,12 +85,13 @@ function exits(s){
 function rooms(s, owed){
   if (!locs(s).length) return '';
   let h = `<div class="rd"><h4>${esc(t('view.rooms'))} <span>${locs(s).length}</span></h4>`;
-  h += locs(s).map(l => readRoom(s, l, owed)).join('');
+  h += rootRooms(s).map(l => readRoom(s, l, owed, 0)).join('');
   return h + `</div>`;
 }
 
-function readRoom(s, l, owed){
+function readRoom(s, l, owed, depth){
   const open = isRoomOpen(l.id);
+  const kids = childrenOf(s, l.id);
   const block = blockOnLoc(s, l.id);
   const answers = owed.filter(o => o.it.srcLoc === l.id);
   const kind = slotList(l).length ? 'o' : isTreasure(l) ? 't' : 'l';
@@ -102,6 +103,7 @@ function readRoom(s, l, owed){
     block ? `<span class="rb blk" title="${esc(t('room.blockedBy', { name: block.nm }))}">⛔</span>` : '',
     answers.length ? `<span class="rb owe" title="${esc(t('room.answersTip'))}">↩</span>` : '',
     locLinks(l).filter(k => k.url).length ? `<span class="rb lnk" title="${esc(t('room.hasLinks'))}">🔗</span>` : '',
+    kids.length ? `<span class="rb sub" title="${esc(t('room.subTip', { n: kids.length }))}">▤ ${kids.length}</span>` : '',
   ].join('');
 
   const body = `${locDesc(l) ? `<div class="w">${esc(locDesc(l))}</div>` : ''}
@@ -124,13 +126,14 @@ function readRoom(s, l, owed){
     + `<span class="rbadges">${badges}</span>`;
 
   return `<div class="rdroom rdi ${kind} ${spent ? 'off' : ''}${open && hasBody ? ' open' : ''}"
-      data-room-id="${esc(l.id)}">
+      data-room-id="${esc(l.id)}" style="${depth ? `margin-left:${Math.min(depth, 4) * 11}px` : ''}">
     ${hasBody
       ? `<button class="rdroom-head" data-room-open="${esc(l.id)}" aria-expanded="${open}">
           <span class="caret">${open ? '▾' : '▸'}</span>${label}</button>`
       : `<div class="rdroom-head bare"><span class="caret"></span>${label}</div>`}
     ${open && hasBody ? `<div class="rdroom-body">${body}</div>` : ''}
-  </div>`;
+  </div>`
+  + kids.map(child => readRoom(s, child, owed, depth + 1)).join('');
 }
 
 function dangers(s){
@@ -234,6 +237,15 @@ export function readConn(c){
           + `${c.toSide ? esc(t('conn.entryFrom', { side: sideLabel(c.toSide) })) : ''}</span></button>
       </div></div>`;
 
+  const covered = blockOnConn(c.id);
+  if (covered){
+    h += `<div class="rdi b ${covered.block.done ? 'off' : ''}">
+      <div class="n">⛔ ${esc(t('conn.blockedBy', { name: covered.block.nm }))}`
+      + `${covered.block.done ? esc(t('room.solvedSuffix')) : ''}</div>
+      ${covered.block.key ? `<div class="k"><b>${esc(t('block.keyLabel'))}</b> ${esc(covered.block.key)}</div>` : ''}
+      <div class="k"><button class="linkbtn" data-goto="${esc(covered.scene.id)}">${esc(covered.scene.name)}</button></div>
+    </div>`;
+  }
   if (c.desc) h += `<div class="rd"><h4>${esc(t('conn.howItWorks'))}</h4><div style="color:#CBD3C9">${esc(c.desc)}</div></div>`;
   if (c.counters.length) h += `<div class="rd"><h4>${esc(t('view.counters'))}</h4>${ctrRow(c, 'c')}</div>`;
   h += tokenRow(t('view.tokens'), tokensAt('conn', c.id));

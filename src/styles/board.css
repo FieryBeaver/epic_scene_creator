@@ -12,7 +12,8 @@
 #edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
 #edges *{pointer-events:none}
 #edges .hit{pointer-events:stroke;stroke:transparent;stroke-width:18;fill:none;cursor:pointer}
-#edges path{fill:none}
+/* Scoped to the wires on purpose: a blanket `#edges path{fill:none}` also
+   hits the arrowhead inside the marker, and CSS beats its fill attribute. */
 #edges .wire{fill:none;stroke:#54685C;stroke-width:2.2}
 #edges .wire.oneway{stroke-dasharray:9 5}
 #edges .wire.shut{stroke:#7A4B45;stroke-dasharray:3 6}
@@ -23,6 +24,7 @@
   align-items:center;gap:3px;pointer-events:none;user-select:none}
 .elabel>*{pointer-events:auto}
 .elabel .elab{background:#141A17;cursor:pointer}
+.elabel .elab .blk{color:#B7CBE6;font-style:normal}
 .erow{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
 
 /* ---------- HUD ---------- */

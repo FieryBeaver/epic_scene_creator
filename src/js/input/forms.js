@@ -10,7 +10,7 @@
 import { t } from '../i18n/index.js';
 
 import { sel, setSel, byId, mark, scene, conn, token, reg, uid } from '../core/state.js';
-import { locs, mkLoc, locName } from '../core/locations.js';
+import { locs, mkLoc, locName, setParent } from '../core/locations.js';
 import { place } from '../core/registries.js';
 import { setPath } from '../core/paths.js';
 import { mkToken, newDanger, newBlock, newEvent } from '../core/model.js';
@@ -59,6 +59,7 @@ function onChange(ev){
   if (el.hasAttribute('data-path')) return changePath(el);
   if (el.hasAttribute('data-setitem')) return setRegistryItemScene(el);
   if (el.hasAttribute('data-toreg')) return roomJoinsList(el);
+  if (el.hasAttribute('data-nest')) return reparentRoom(el);
   if (el.hasAttribute('data-movetok')) return moveToken(el);
   if (el.hasAttribute('data-boss-tpl')) return spawnBoss(el);
   if (el.hasAttribute('data-tpl')) return applyTemplate(el);
@@ -138,6 +139,16 @@ function roomJoinsList(el){
   mark();
   renderAll();
   toast(t('msg.joinedList', { item: item.nm, list: r.nm }));
+}
+
+/** Move a room inside another, or back out to the top level. */
+function reparentRoom(el){
+  const [sceneId, locId] = el.getAttribute('data-nest').split(':');
+  const s = scene(sceneId);
+  if (!s) return;
+  setParent(s, locId, el.value);
+  mark();
+  renderAll();
 }
 
 /* ---------- tokens ---------- */

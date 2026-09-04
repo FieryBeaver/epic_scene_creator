@@ -279,3 +279,59 @@ test('list items round-trip their description', () => {
   assert.equal(after.registries[0].items[0].desc, 'Ніша у стіні');
   assert.deepEqual(after.scenes, before.scenes);
 });
+
+/* ---------- nested rooms ---------- */
+
+test('a room can hold rooms, to any depth', () => {
+  const b = deserialize({
+    scenes: [{ id: 's1', name: 'Сцена', locations: [
+      { id: 'a', nm: 'Кузня' },
+      { id: 'b', nm: 'Горн', parent: 'a' },
+      { id: 'c', nm: 'Ковадло', parent: 'b' },
+    ] }],
+  });
+  const [a, bb, c] = b.scenes[0].locations;
+  assert.equal(a.parent, '');
+  assert.equal(bb.parent, 'a');
+  assert.equal(c.parent, 'b');
+});
+
+test('a parent that is not in the scene is dropped', () => {
+  const b = deserialize({
+    scenes: [{ id: 's1', name: 'Сцена', locations: [
+      { id: 'a', nm: 'Тут', parent: 'somewhere-else' },
+    ] }],
+  });
+  assert.equal(b.scenes[0].locations[0].parent, '');
+});
+
+test('a nesting loop is broken rather than hiding the rooms', () => {
+  const b = deserialize({
+    scenes: [{ id: 's1', name: 'Сцена', locations: [
+      { id: 'a', nm: 'A', parent: 'b' },
+      { id: 'b', nm: 'B', parent: 'a' },
+    ] }],
+  });
+  const roots = b.scenes[0].locations.filter(l => !l.parent);
+  assert.equal(roots.length, 1, 'exactly one of the pair is cut loose');
+});
+
+test('nesting round-trips', () => {
+  const before = deserialize({
+    scenes: [{ id: 's1', name: 'Сцена', locations: [
+      { id: 'a', nm: 'Кузня' }, { id: 'b', nm: 'Горн', parent: 'a' },
+    ] }],
+  });
+  const after = deserialize(JSON.parse(JSON.stringify(serialize(before, camera))));
+  assert.deepEqual(after.scenes, before.scenes);
+});
+
+test('files written before nesting existed open with every room at top level', () => {
+  const b = deserialize({
+    version: 3,
+    scenes: [{ id: 's1', name: 'Стара', locations: [
+      { id: 'l1', nm: 'Зала' }, { id: 'l2', nm: 'Комора' },
+    ] }],
+  });
+  assert.deepEqual(b.scenes[0].locations.map(l => l.parent), ['', '']);
+});

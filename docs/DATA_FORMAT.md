@@ -117,6 +117,7 @@ Checking *спрацював* applies the effect immediately: the named connecti
 {
   "id": "l1", "nm": "Обеліск Ацерерака",   // "" → derived from registry/treasure
   "notes": "",
+  "parent": "l7ef",               // the room this one sits inside, or ""
   "reg": { "gods": "moa" },       // registryId → itemId; at most one entry
   "hasTre": true,
   "tre": "8 000 gp + код",        // contents
@@ -125,6 +126,13 @@ Checking *спрацював* applies the effect immediately: the named connecti
   "links": [ { "id": "k1", "label": "battlemap", "url": "https://…" } ]
 }
 ```
+
+Rooms nest. `parent` names the room this one sits inside; storage stays a flat
+list, because nesting the arrays would make every walk over `locations` wrong.
+A parent that is not in the same scene, or that would close a loop, is cut
+back to the top level on read — either would hide the room from the tree.
+Deleting a room lifts its children to where it was rather than taking them
+with it.
 
 A room holds **at most one** registry entry, and a room that has one *is* that
 thing: the tomb of Moa is a room, not a cupboard with a tomb in it. Its name
@@ -257,6 +265,9 @@ list. v4 makes a list item a room in its own right.
 | `location.notes` on a room that is a list item | moved to that item's `desc`, and cleared on the room |
 | the same item placed in two rooms | kept in the first; the whole point of a list is one definite place |
 | a `reg` entry naming an item that no longer exists | dropped |
+
+Rooms in a file written before nesting existed simply have no `parent`, so
+they all open at the top level.
 
 The migration is covered by tests in `test/serialize.test.mjs`; add a case
 there before changing it.

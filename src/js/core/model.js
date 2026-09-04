@@ -211,6 +211,20 @@ export function blockTargetLabel(s, b){
   return o ? o.l : '';
 }
 
+/**
+ * The block standing in front of a passage, and the scene that owns it.
+ *
+ * A block always lives in one scene but can cover a passage leading out of
+ * it, so the passage itself has to look outward to find its own block.
+ */
+export function blockOnConn(connId){
+  for (const s of S.scenes){
+    const b = s.blocks.find(x => x.tgtKind === 'conn' && x.tgt === connId);
+    if (b) return { scene: s, block: b };
+  }
+  return null;
+}
+
 /** The block standing in front of a room, if any. */
 export function blockOnLoc(s, locId){
   return s.blocks.find(b => b.tgtKind === 'loc' && b.tgt === locId) || null;

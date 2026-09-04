@@ -13,7 +13,7 @@ import {
   delScene, delConn, delToken, mkToken,
   newDanger, newBlock, newEvent, newCounter,
 } from '../core/model.js';
-import { locs, mkLoc, locLinks, locEmpty } from '../core/locations.js';
+import { locs, mkLoc, locLinks, locEmpty, removeRoom, childrenOf } from '../core/locations.js';
 import { hostOf, place, clearSlot } from '../core/registries.js';
 import { setPath } from '../core/paths.js';
 import { renderAll, renderLive, select } from '../ui/render.js';
@@ -181,7 +181,12 @@ function delListItem(spec){
   const [kind, hostId, arrayName, itemId] = spec.split(':');
   const host = kind === 's' ? scene(hostId) : conn(hostId);
   if (!host || !Array.isArray(host[arrayName])) return;
-  host[arrayName] = host[arrayName].filter(x => x.id !== itemId);
+
+  // Rooms nest, so removing one lifts its children rather than taking a whole
+  // wing of the dungeon with it — there is no undo to reach for.
+  if (arrayName === 'locations') removeRoom(host, itemId);
+  else host[arrayName] = host[arrayName].filter(x => x.id !== itemId);
+
   mark();
   renderAll();
 }
@@ -210,6 +215,20 @@ function delLink(spec){
 
 /** `data-add="<kind>" data-id="<hostId>"` */
 function addItem(kind, id){
+  // A sub-room carries its parent in the id: "<sceneId>:<parentLocId>".
+  if (kind === 'subroom'){
+    const [sceneId, parent] = id.split(':');
+    const host = scene(sceneId);
+    if (host){
+      const child = mkLoc({ parent });
+      locs(host).push(child);
+      openRoomFold(child.id);
+      mark();
+      renderAll();
+    }
+    return;
+  }
+
   const s = scene(id);
 
   if (kind === 'token'){
@@ -272,7 +291,8 @@ function delRegistry(regId){
   if (!r || !confirm(t('msg.confirmDeleteList', { name: r.nm }))) return;
   S.scenes.forEach(s => {
     locs(s).forEach(l => { if (l.reg) delete l.reg[regId]; });
-    s.locations = locs(s).filter(l => !locEmpty(l));
+    // A room that only held the item goes, unless something is nested in it.
+    s.locations = locs(s).filter(l => !locEmpty(l) || childrenOf(s, l.id).length);
   });
   S.registries = regs().filter(x => x.id !== regId);
   setTab('scenes');

@@ -7,7 +7,7 @@
  */
 
 import { S, sel, scene } from '../core/state.js';
-import { siblings, tokensAt } from '../core/model.js';
+import { siblings, tokensAt, blockOnConn } from '../core/model.js';
 import { tokenTypeColor } from '../core/constants.js';
 import { t } from '../i18n/index.js';
 import { esc, safeColor } from '../util/html.js';
@@ -127,9 +127,15 @@ function renderEdgeLabels(world){
     d.style.left = m.x + 'px';
     d.style.top = m.y + 'px';
 
+    const covered = blockOnConn(c.id);
+    const blocked = covered && !covered.block.done;
+
     let html = `<span class="chip clk elab" data-conn="${esc(c.id)}"`
-      + ` style="border-color:${isSel ? '#D08A34' : '#3A4941'}">`
-      + `${c.open === false ? '✕ ' : ''}${esc(c.name)}${sideMark(c)}`
+      + ` style="border-color:${isSel ? '#D08A34' : '#3A4941'}"`
+      + `${blocked ? ` title="${esc(t('conn.blockedBy', { name: covered.block.nm }))}"` : ''}>`
+      + `${c.open === false ? '✕ ' : ''}`
+      + `${blocked ? '<i class="blk">⛔</i> ' : ''}`
+      + `${esc(c.name)}${sideMark(c)}`
       + `${c.dir === 'one' ? ' →' : ' ↔'}`
       + `${c.minutes ? ` · ${esc(c.minutes)}${esc(t('conn.min'))}` : ''}</span>`;
 

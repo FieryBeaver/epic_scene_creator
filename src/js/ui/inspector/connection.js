@@ -1,7 +1,7 @@
 /** Connection editor: ends, direction, pinned sides, counters, tokens. */
 
 import { scene } from '../../core/state.js';
-import { tokensAt } from '../../core/model.js';
+import { tokensAt, blockOnConn } from '../../core/model.js';
 import { TPL_CONN, tplName } from '../../core/templates.js';
 import { t } from '../../i18n/index.js';
 import { esc } from '../../util/html.js';
@@ -25,6 +25,7 @@ export function inspConn(c){
           <button class="linkbtn" data-goto="${esc(c.to)}">${b ? esc(b.name) : '?'}</button>
         </div>
         <button class="btn sm" data-swap="${id}" style="margin-top:7px">${esc(t('conn.swap'))}</button>
+        ${blockNote(c)}
       </fieldset>
 
       <fieldset><legend>${esc(t('conn.props'))}</legend>
@@ -61,6 +62,17 @@ export function inspConn(c){
       ${counters(c, id)}
       ${tokens(toks)}
     </div>`;
+}
+
+/** Same note a covered room shows, for a covered passage. */
+function blockNote(c){
+  const covered = blockOnConn(c.id);
+  if (!covered) return '';
+  return `<div style="font-size:11px;color:var(--sky);margin-top:7px">
+    ⛔ ${esc(t('conn.blockedBy', { name: covered.block.nm }))}`
+    + `${covered.block.done ? esc(t('room.solvedSuffix')) : ''}
+    · <button class="linkbtn" data-goto="${esc(covered.scene.id)}">${esc(covered.scene.name)}</button>
+  </div>`;
 }
 
 function sideOptions(current){

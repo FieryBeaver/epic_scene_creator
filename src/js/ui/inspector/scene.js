@@ -6,8 +6,8 @@
 
 import { scene, regs } from '../../core/state.js';
 import { connsOf, owedBy, tokensAt, blockTargets, blockOnLoc } from '../../core/model.js';
-import { locs, locName, locIcon, locColor, locLinks, regRoom, locDesc, locDescPath }
-  from '../../core/locations.js';
+import { locs, locName, locIcon, locColor, locLinks, regRoom, locDesc, locDescPath,
+  rootRooms, childrenOf, canNest } from '../../core/locations.js';
 import { hostOf } from '../../core/registries.js';
 import { BLOCK_KINDS, blockKindLabel, tokenTypeName } from '../../core/constants.js';
 import { t } from '../../i18n/index.js';
@@ -191,7 +191,8 @@ function sectionRooms(s){
     h += `<div class="empty">${esc(t('room.none'))}</div>`;
   }
 
-  h += locs(s).map(l => room(s, l, owed)).join('');
+  // Rooms hold rooms, so the list is a tree rather than a flat run.
+  h += rootRooms(s).map(l => room(s, l, owed, 0)).join('');
 
   h += `<div class="row">
     <button class="btn sm" data-add="loc" data-id="${esc(s.id)}">${esc(t('room.add'))}</button>
@@ -231,8 +232,9 @@ function sectionRooms(s){
  * of the scene, so the header carries the name and a badge per thing worth
  * knowing, and the body waits until it is asked for.
  */
-function room(s, l, owed){
+function room(s, l, owed, depth){
   const open = isRoomOpen(l.id);
+  const kids = childrenOf(s, l.id);
   const owner = regRoom(l);
   const col = safeColor(locColor(l));
   const block = blockOnLoc(s, l.id);
@@ -244,9 +246,11 @@ function room(s, l, owed){
     block ? `<span class="rb blk" title="${esc(t('room.blockedBy', { name: block.nm }))}">⛔</span>` : '',
     answers.length ? `<span class="rb owe" title="${esc(t('room.answersTip'))}">↩</span>` : '',
     locLinks(l).filter(k => k.url).length ? `<span class="rb lnk" title="${esc(t('room.hasLinks'))}">🔗</span>` : '',
+    kids.length ? `<span class="rb sub" title="${esc(t('room.subTip', { n: kids.length }))}">▤ ${kids.length}</span>` : '',
   ].join('');
 
-  return `<div class="room${open ? ' open' : ''}" data-room-id="${esc(l.id)}">
+  return `<div class="room${open ? ' open' : ''}" data-room-id="${esc(l.id)}"
+      style="${depth ? `margin-left:${Math.min(depth, 4) * 12}px` : ''}">
     <div class="room-head">
       <button class="room-toggle" data-room-open="${esc(l.id)}" aria-expanded="${open}">
         <span class="caret">${open ? '▾' : '▸'}</span>
@@ -257,7 +261,8 @@ function room(s, l, owed){
         title="${esc(owner ? t('room.removeFromBoard') : t('room.delete'))}">✕</button>
     </div>
     ${open ? `<div class="room-body">${roomBody(s, l, owner, block, owed)}</div>` : ''}
-  </div>`;
+  </div>`
+  + kids.map(child => room(s, child, owed, depth + 1)).join('');
 }
 
 /**
@@ -306,7 +311,28 @@ function roomBody(s, l, owner, block, owed){
       ? esc(t('room.blockedBy', { name: block.nm })) + (block.done ? esc(t('room.solvedSuffix')) : '')
       : esc(t('room.free'))}</div>
     ${answersHere(owed, l)}
+    ${nesting(s, l)}
     ${owner ? '' : joinList(s, l, owner)}`;
+}
+
+/**
+ * Where this room sits, and how to put another one inside it.
+ *
+ * The parent list leaves out the room itself and everything already under it:
+ * moving a room into its own child would cut both loose from the tree.
+ */
+function nesting(s, l){
+  const options = locs(s).filter(other => canNest(s, l.id, other.id) && other.id !== l.id);
+  return `<div class="row eonly" style="margin-top:7px;gap:7px;align-items:flex-end">
+    <label class="f" style="flex:1 1 auto;margin:0"><span>${esc(t('room.inside'))}</span>
+      <select data-nest="${esc(s.id)}:${esc(l.id)}">
+        <option value="">${esc(t('room.topLevel'))}</option>
+        ${options.map(o => `<option value="${esc(o.id)}"${l.parent === o.id ? ' selected' : ''}>`
+          + `${esc(locIcon(o))} ${esc(locName(o))}</option>`).join('')}
+      </select></label>
+    <button class="btn sm" data-add="subroom"
+      data-id="${esc(s.id)}:${esc(l.id)}">${esc(t('room.addSub'))}</button>
+  </div>`;
 }
 
 /** Which list this room belongs to, and the way out of it. */

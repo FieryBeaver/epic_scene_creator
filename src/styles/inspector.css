@@ -128,3 +128,5 @@ fieldset,.rd{min-width:0}
   border:1px solid var(--line);border-radius:5px;padding:5px 7px;margin-bottom:8px;
   background:#00000033;font-size:12px}
 .rmemb .btn{margin-left:auto}
+
+.rb.sub{color:#CBD3C9;border-color:var(--line);background:#ffffff0d}
