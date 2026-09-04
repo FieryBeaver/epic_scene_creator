@@ -82,7 +82,7 @@ function rooms(s, owed){
     const kind = slotList(l).length ? 'o' : isTreasure(l) ? 't' : 'l';
 
     h += `<div class="rdi ${kind} ${isTreasure(l) && l.taken ? 'off' : ''}">
-      <div class="n" style="color:${safeColor(locColor(l))}">${locIcon(l)} ${esc(locName(l))}`
+      <div class="n" style="color:${safeColor(locColor(l))}">${esc(locIcon(l))} ${esc(locName(l))}`
       + `${isTreasure(l) && l.taken ? ' <span class="tag">забрано</span>' : ''}`
       + `${extras.map(x => ` <span class="tag">${esc(x.r.one || x.r.nm)} ${esc(x.it.nm)}</span>`).join('')}</div>
       ${l.notes ? `<div class="w">${esc(l.notes)}</div>` : ''}

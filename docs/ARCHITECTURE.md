@@ -127,7 +127,11 @@ A board file is hand-editable and arrives from disk, so it is untrusted input.
   everything else (`javascript:` included) is dropped.
 
 Colours reach `style` attributes from four places — scene, registry, room and
-token — and all four go through `safeColor()`.
+token — and all four go through `safeColor()`. Registry symbols (`item.sym`,
+`registry.sym`, and `locIcon()` which concatenates them) are free-text glyphs
+that land in element content, so every call site wraps them in `esc()`;
+`locIcon()` itself returns raw text because `blockTargets()` feeds it into
+labels that are escaped once, further down.
 
 ## What is deliberately absent
 

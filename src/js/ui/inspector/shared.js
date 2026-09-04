@@ -26,7 +26,7 @@ export function srcRef(it){
   if (!s) return `<span class="empty">сцену видалено</span>`;
   const l = it.srcLoc ? byId(locs(s), it.srcLoc) : null;
   return `<button class="linkbtn" data-goto="${esc(s.id)}">→ ${esc(s.name)}`
-    + `${l ? ' · ' + locIcon(l) + ' ' + esc(locName(l)) : ''}</button>`;
+    + `${l ? ' · ' + esc(locIcon(l)) + ' ' + esc(locName(l)) : ''}</button>`;
 }
 
 /** Room picker narrowing a `src` reference down to one room of that scene. */
@@ -41,14 +41,14 @@ export function srcLocField(it, path){
     <select data-path="${esc(path)}:srcLoc">
       <option value="">— уся сцена —</option>
       ${locs(s).map(l => `<option value="${esc(l.id)}"${it.srcLoc === l.id ? ' selected' : ''}>`
-        + `${locIcon(l)} ${esc(locName(l))}</option>`).join('')}
+        + `${esc(locIcon(l))} ${esc(locName(l))}</option>`).join('')}
     </select></label>`;
 }
 
 /** Label of the room in *this* scene that holds someone else's answer. */
 export function owedLoc(hostScene, it){
   const l = it.srcLoc ? byId(locs(hostScene), it.srcLoc) : null;
-  return l ? `${locIcon(l)} ${esc(locName(l))}` : '';
+  return l ? `${esc(locIcon(l))} ${esc(locName(l))}` : '';
 }
 
 /** Danger level as filled/empty dots. */

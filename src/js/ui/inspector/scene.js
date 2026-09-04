@@ -221,7 +221,7 @@ function sectionRooms(s){
         data-place="${esc(s.id)}:${esc(r.id)}:${esc(it.id)}"
         style="color:${col};border-color:${col}55"
         title="${esc(it.note || '')}${host ? ' · зараз у «' + esc(host.name) + '»' : ''}">`
-        + `${it.sym || r.sym || '◆'} ${esc(it.nm)}</button>`;
+        + `${esc(it.sym || r.sym || '◆')} ${esc(it.nm)}</button>`;
     }).join('') + `</div>`;
   });
 
@@ -236,7 +236,7 @@ function registrySlot(s, l, r){
         const host = hostOf(r.id, it.id);
         const mine = (l.reg || {})[r.id] === it.id;
         return `<option value="${esc(it.id)}"${mine ? ' selected' : ''}${host && !mine ? ' disabled' : ''}>`
-          + `${it.sym ? it.sym + ' ' : ''}${esc(it.nm)}`
+          + `${it.sym ? esc(it.sym) + ' ' : ''}${esc(it.nm)}`
           + `${host && !mine ? ' — у «' + esc(host.name) + '»' : ''}</option>`;
       }).join('')}
     </select></label>`;

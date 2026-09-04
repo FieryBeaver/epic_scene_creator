@@ -65,7 +65,7 @@ export function renderPaneScenes(){
       <div class="cs">${s.dm ? esc(s.dm) + ' · ' : ''}☠ ${dangers} · ◈ ${treasure} · ⛔ ${blocks}`
       + `${rooms ? ' · ▣ ' + rooms : ''}</div>
       ${rooms ? `<div class="tagline">${locs(s).map(l =>
-        `<span class="tag" style="color:${safeColor(locColor(l))}">${locIcon(l)} ${esc(locName(l))}</span>`
+        `<span class="tag" style="color:${safeColor(locColor(l))}">${esc(locIcon(l))} ${esc(locName(l))}</span>`
       ).join('')}</div>` : ''}
     </div>`;
   });
@@ -160,7 +160,7 @@ function regPaneHtml(r){
     const host = hostOf(r.id, it.id);
     const p = `r:${id}:items:${esc(it.id)}`;
     h += `<div class="card" style="border-left:3px solid ${safeColor(r.color, '#54685C')}">
-      <div class="cn">${it.sym || r.sym || '◆'} ${esc(it.nm)}</div>
+      <div class="cn">${esc(it.sym || r.sym || '◆')} ${esc(it.nm)}</div>
       ${it.note ? `<div class="cs">${esc(it.note)}</div>` : ''}
       <div class="eonly grid2" style="margin-top:5px">
         <input type="text" placeholder="назва" data-path="${p}:nm" value="${esc(it.nm)}">

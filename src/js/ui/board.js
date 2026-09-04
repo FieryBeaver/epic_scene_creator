@@ -80,7 +80,7 @@ function nodeMarkup(s){
     h += `<div class="row">` + locs(s).map(l => {
       const col = safeColor(locColor(l));
       return `<span class="chip" style="color:${col};border-color:${col}55;background:${col}14"`
-        + ` title="${esc(l.notes || 'кімната')}">${locIcon(l)} ${esc(locName(l))}</span>`;
+        + ` title="${esc(l.notes || 'кімната')}">${esc(locIcon(l))} ${esc(locName(l))}</span>`;
     }).join('') + `</div>`;
   }
 
