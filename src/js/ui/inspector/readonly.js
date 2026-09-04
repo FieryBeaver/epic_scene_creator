@@ -13,9 +13,10 @@ import { locs, isTreasure, locName, locIcon, locColor, slotList, locDesc, locLin
 import { itemsIn } from '../../core/registries.js';
 import { tokenTypeColor } from '../../core/constants.js';
 import { t } from '../../i18n/index.js';
-import { esc, safeColor } from '../../util/html.js';
+import { esc, T, safeColor } from '../../util/html.js';
 import { SIDE_SYM, sideLabel } from '../../util/geometry.js';
-import { srcRef, owedLoc, lvlDots, ctrRow, renderLinks } from './shared.js';
+import { srcRef, owedLoc, lvlDots, ctrRow, renderLinks,
+  roomBadges, roomLabel, roomIndent } from './shared.js';
 import { isRoomOpen } from './folds.js';
 
 export function readScene(s){
@@ -24,7 +25,7 @@ export function readScene(s){
 
   let h = `<div class="ihead">
       <div class="t">${esc(s.name)}</div>
-      <div class="s">${s.dm ? esc(t('view.dm', { name: s.dm })) : esc(t('view.noDm'))}${registrySummary(s)}</div>
+      <div class="s">${s.dm ? T('view.dm', { name: s.dm }) : T('view.noDm')}${registrySummary(s)}</div>
     </div>
     <div class="ipad">`;
 
@@ -39,7 +40,7 @@ export function readScene(s){
   h += events(s);
   h += unlocks(s, owed);
 
-  if (s.counters.length) h += `<div class="rd"><h4>${esc(t('view.counters'))}</h4>${ctrRow(s, 's')}</div>`;
+  if (s.counters.length) h += `<div class="rd"><h4>${T('view.counters')}</h4>${ctrRow(s, 's')}</div>`;
   h += tokenRow(t('view.tokens'), tokensAt('scene', s.id));
 
   return h + `</div>`;
@@ -56,8 +57,8 @@ function registrySummary(s){
 
 function exits(s){
   const conns = connsOf(s.id);
-  let h = `<div class="rd"><h4>${esc(t('view.exits'))} <span>${conns.length}</span></h4>`;
-  if (!conns.length) h += `<div class="empty">${esc(t('view.isolated'))}</div>`;
+  let h = `<div class="rd"><h4>${T('view.exits')} <span>${conns.length}</span></h4>`;
+  if (!conns.length) h += `<div class="empty">${T('view.isolated')}</div>`;
   h += `<div class="jump">`;
   conns.forEach(c => {
     const otherId = c.from === s.id ? c.to : c.from;
@@ -68,7 +69,7 @@ function exits(s){
       <span class="a">${mySide ? (SIDE_SYM[mySide] || '') + ' ' : ''}${arrow} ${other ? esc(other.name) : '?'}</span>
       <span class="b">${c.open === false ? '✕ ' : ''}${esc(c.name)}`
       + `${mySide ? ' · ' + esc(sideLabel(mySide)) : ''}`
-      + `${c.minutes ? ' · ' + esc(c.minutes) + esc(t('conn.min')) : ''}</span>
+      + `${c.minutes ? ' · ' + esc(c.minutes) + T('conn.min') : ''}</span>
     </button>`;
   });
   return h + `</div></div>`;
@@ -84,7 +85,7 @@ function exits(s){
  */
 function rooms(s, owed){
   if (!locs(s).length) return '';
-  let h = `<div class="rd"><h4>${esc(t('view.rooms'))} <span>${locs(s).length}</span></h4>`;
+  let h = `<div class="rd"><h4>${T('view.rooms')} <span>${locs(s).length}</span></h4>`;
   h += rootRooms(s).map(l => readRoom(s, l, owed, 0)).join('');
   return h + `</div>`;
 }
@@ -97,36 +98,26 @@ function readRoom(s, l, owed, depth){
   const kind = slotList(l).length ? 'o' : isTreasure(l) ? 't' : 'l';
   const spent = isTreasure(l) && l.taken;
 
-  const badges = [
-    isTreasure(l) ? `<span class="rb tre" title="${esc(spent ? t('room.takenTip') : t('room.hasTreasureTip'))}">
-      ◈${spent ? '✓' : ''}</span>` : '',
-    block ? `<span class="rb blk" title="${esc(t('room.blockedBy', { name: block.nm }))}">⛔</span>` : '',
-    answers.length ? `<span class="rb owe" title="${esc(t('room.answersTip'))}">↩</span>` : '',
-    locLinks(l).filter(k => k.url).length ? `<span class="rb lnk" title="${esc(t('room.hasLinks'))}">🔗</span>` : '',
-    kids.length ? `<span class="rb sub" title="${esc(t('room.subTip', { n: kids.length }))}">▤ ${kids.length}</span>` : '',
-  ].join('');
-
   const body = `${locDesc(l) ? `<div class="w">${esc(locDesc(l))}</div>` : ''}
-    ${isTreasure(l) && l.tre ? `<div class="k"><b>${esc(t('view.treasure'))}</b> ${esc(l.tre)}</div>` : ''}
-    ${isTreasure(l) && l.guard ? `<div class="k"><b>${esc(t('view.guard'))}</b> ${esc(l.guard)}</div>` : ''}
-    ${block ? `<div class="k"><b>${esc(t('view.covered'))}</b> ${esc(block.nm)}`
-      + `${block.done ? esc(t('room.solvedSuffix')) : ''}`
-      + `${block.src && scene(block.src) ? esc(t('view.keyAt')) + srcRef(block) : ''}</div>` : ''}
+    ${isTreasure(l) && l.tre ? `<div class="k"><b>${T('view.treasure')}</b> ${esc(l.tre)}</div>` : ''}
+    ${isTreasure(l) && l.guard ? `<div class="k"><b>${T('view.guard')}</b> ${esc(l.guard)}</div>` : ''}
+    ${block ? `<div class="k"><b>${T('view.covered')}</b> ${esc(block.nm)}`
+      + `${block.done ? T('room.solvedSuffix') : ''}`
+      + `${block.src && scene(block.src) ? T('view.keyAt') + srcRef(block) : ''}</div>` : ''}
     ${renderLinks(l)}
-    ${answers.length ? `<div class="k"><b>${esc(t('view.answersFor'))}</b> ${answers.map(o =>
+    ${answers.length ? `<div class="k"><b>${T('view.answersFor')}</b> ${answers.map(o =>
       `${esc(o.it.nm)} (<button class="linkbtn" data-goto="${esc(o.from.id)}">`
       + `${esc(o.from.name)}</button>)`).join(', ')}</div>` : ''}`;
 
   // A room with nothing recorded has nothing behind the click, so it is a
   // plain line rather than an accordion that opens onto emptiness.
   const hasBody = !!body.trim();
-  const label = `<span class="n" style="color:${safeColor(locColor(l))}">`
-    + `${esc(locIcon(l))} ${esc(locName(l))}</span>`
-    + `${spent ? ` <span class="tag">${esc(t('view.taken'))}</span>` : ''}`
-    + `<span class="rbadges">${badges}</span>`;
+  const label = roomLabel(l)
+    + `${spent ? ` <span class="tag">${T('view.taken')}</span>` : ''}`
+    + `<span class="rbadges">${roomBadges(s, l, owed)}</span>`;
 
   return `<div class="rdroom rdi ${kind} ${spent ? 'off' : ''}${open && hasBody ? ' open' : ''}"
-      data-room-id="${esc(l.id)}" style="${depth ? `margin-left:${Math.min(depth, 4) * 11}px` : ''}">
+      data-room-id="${esc(l.id)}" style="${roomIndent(depth, 11)}">
     ${hasBody
       ? `<button class="rdroom-head" data-room-open="${esc(l.id)}" aria-expanded="${open}">
           <span class="caret">${open ? '▾' : '▸'}</span>${label}</button>`
@@ -139,14 +130,14 @@ function readRoom(s, l, owed, depth){
 function dangers(s){
   if (!s.dangers.length) return '';
   const active = s.dangers.filter(d => d.active !== false).length;
-  let h = `<div class="rd"><h4>${esc(t('view.dangers'))} <span>${esc(t('view.activeCount', { n: active }))}</span></h4>`;
+  let h = `<div class="rd"><h4>${T('view.dangers')} <span>${T('view.activeCount', { n: active })}</span></h4>`;
   s.dangers.forEach(d => {
     h += `<div class="rdi d ${d.active === false ? 'off' : ''}">
       <div class="n">${esc(d.nm)}
         <span style="color:var(--blood);font-size:11px">${lvlDots(d.lvl)}</span>
-        ${d.active === false ? `<span class="tag">${esc(t('danger.disabled'))}</span>` : ''}</div>
+        ${d.active === false ? `<span class="tag">${T('danger.disabled')}</span>` : ''}</div>
       ${d.what ? `<div class="w">${esc(d.what)}</div>` : ''}
-      ${d.fix ? `<div class="k"><b>${esc(t('danger.removedBy'))}</b> ${esc(d.fix)}</div>` : ''}
+      ${d.fix ? `<div class="k"><b>${T('danger.removedBy')}</b> ${esc(d.fix)}</div>` : ''}
       ${d.src ? `<div class="k">${srcRef(d)}</div>` : ''}
     </div>`;
   });
@@ -156,15 +147,15 @@ function dangers(s){
 function blocks(s){
   if (!s.blocks.length) return '';
   const open = s.blocks.filter(b => !b.done).length;
-  let h = `<div class="rd"><h4>${esc(t('view.blocks'))} <span>${esc(t('view.openCount', { n: open }))}</span></h4>`;
+  let h = `<div class="rd"><h4>${T('view.blocks')} <span>${T('view.openCount', { n: open })}</span></h4>`;
   s.blocks.forEach(b => {
     const target = blockTargetLabel(s, b);
     h += `<div class="rdi b ${b.done ? 'off' : ''}">
-      <div class="n">${esc(b.nm)}${target ? ` <span class="tag">${esc(t('block.coversTag', { what: target }))}</span>` : ''}
-        ${b.done ? `<span class="tag">${esc(t('block.done'))}</span>` : ''}</div>
+      <div class="n">${esc(b.nm)}${target ? ` <span class="tag">${T('block.coversTag', { what: target })}</span>` : ''}
+        ${b.done ? `<span class="tag">${T('block.done')}</span>` : ''}</div>
       ${b.what ? `<div class="w">${esc(b.what)}</div>` : ''}
-      ${b.key ? `<div class="k"><b>${esc(t('block.keyLabel'))}</b> ${esc(b.key)}</div>` : ''}
-      ${b.src ? `<div class="k"><b>${esc(t('block.whereToLook'))}</b> ${srcRef(b)}</div>` : ''}
+      ${b.key ? `<div class="k"><b>${T('block.keyLabel')}</b> ${esc(b.key)}</div>` : ''}
+      ${b.src ? `<div class="k"><b>${T('block.whereToLook')}</b> ${srcRef(b)}</div>` : ''}
     </div>`;
   });
   return h + `</div>`;
@@ -173,13 +164,13 @@ function blocks(s){
 function events(s){
   if (!s.events.length) return '';
   const pending = s.events.filter(e => !e.fired).length;
-  let h = `<div class="rd"><h4>${esc(t('view.events'))} <span>${esc(t('view.pendingCount', { n: pending }))}</span></h4>`;
+  let h = `<div class="rd"><h4>${T('view.events')} <span>${T('view.pendingCount', { n: pending })}</span></h4>`;
   s.events.forEach(e => {
     const c = e.conn ? conn(e.conn) : null;
     const other = c ? scene(c.from === s.id ? c.to : c.from) : null;
     h += `<div class="rdi e ${e.fired ? 'off' : ''}">
-      <div class="n">${esc(e.nm)}${e.fired ? ` <span class="tag">${esc(t('event.fired'))}</span>` : ''}</div>
-      ${e.trig ? `<div class="k"><b>${esc(t('event.triggerLabel'))}</b> ${esc(e.trig)}</div>` : ''}
+      <div class="n">${esc(e.nm)}${e.fired ? ` <span class="tag">${T('event.fired')}</span>` : ''}</div>
+      ${e.trig ? `<div class="k"><b>${T('event.triggerLabel')}</b> ${esc(e.trig)}</div>` : ''}
       ${e.eff ? `<div class="w">${esc(e.eff)}</div>` : ''}
       ${c ? `<div class="k">${esc(e.act === 'close' ? t('event.closesPassage') : t('event.opensPassage'))}
         <button class="linkbtn" data-selconn="${esc(c.id)}">${esc(c.name)}</button>
@@ -190,17 +181,17 @@ function events(s){
 }
 
 function unlocks(s, owed){
-  let h = `<div class="rd"><h4>${esc(t('view.solves'))} <span>${owed.length}</span></h4>`;
-  if (!owed.length) h += `<div class="empty">${esc(t('owed.nothing'))}</div>`;
+  let h = `<div class="rd"><h4>${T('view.solves')} <span>${owed.length}</span></h4>`;
+  if (!owed.length) h += `<div class="empty">${T('owed.nothing')}</div>`;
   owed.forEach(o => {
     const solved = o.kind === 'danger' ? o.it.active === false : !!o.it.done;
     const where = owedLoc(s, o.it);
     h += `<div class="rdi o ${solved ? 'off' : ''}">
       <div class="n">${o.kind === 'danger' ? '☠' : '⛔'} ${esc(o.it.nm)}`
-      + `${solved ? ` <span class="tag">${esc(t('owed.closed'))}</span>` : ''}</div>
+      + `${solved ? ` <span class="tag">${T('owed.closed')}</span>` : ''}</div>
       <div class="w">${esc(o.kind === 'danger' ? o.it.fix : o.it.key)}</div>
-      ${where ? `<div class="k"><b>${esc(t('owed.hereLabel'))}</b> ${where}</div>` : ''}
-      <div class="k">${esc(t('owed.for'))} <button class="linkbtn" data-goto="${esc(o.from.id)}">${esc(o.from.name)}</button></div>
+      ${where ? `<div class="k"><b>${T('owed.hereLabel')}</b> ${where}</div>` : ''}
+      <div class="k">${T('owed.for')} <button class="linkbtn" data-goto="${esc(o.from.id)}">${esc(o.from.name)}</button></div>
     </div>`;
   });
   return h + `</div>`;
@@ -223,31 +214,31 @@ export function readConn(c){
   let h = `<div class="ihead">
       <div class="t">${esc(c.name)}</div>
       <div class="s">${esc(c.dir === 'one' ? t('conn.oneWayShort') : t('conn.twoWayShort'))}`
-      + `${c.open === false ? esc(t('conn.closed')) : ''}`
-      + `${c.minutes ? ' · ' + esc(c.minutes) + ' ' + esc(t('conn.min')) : ''}</div>
+      + `${c.open === false ? T('conn.closed') : ''}`
+      + `${c.minutes ? ' · ' + esc(c.minutes) + ' ' + T('conn.min') : ''}</div>
     </div>
     <div class="ipad">
-      <div class="rd"><h4>${esc(t('conn.leads'))}</h4><div class="jump">
+      <div class="rd"><h4>${T('conn.leads')}</h4><div class="jump">
         <button data-goto="${esc(c.from)}">
           <span class="a">${a ? esc(a.name) : '?'}</span>
-          <span class="b">${esc(t('conn.start'))}${c.fromSide ? esc(t('conn.exitTo', { side: sideLabel(c.fromSide) })) : ''}</span></button>
+          <span class="b">${T('conn.start')}${c.fromSide ? T('conn.exitTo', { side: sideLabel(c.fromSide) }) : ''}</span></button>
         <button data-goto="${esc(c.to)}">
           <span class="a">${b ? esc(b.name) : '?'}</span>
           <span class="b">${esc(c.dir === 'one' ? t('conn.onlyHere') : t('conn.end'))}`
-          + `${c.toSide ? esc(t('conn.entryFrom', { side: sideLabel(c.toSide) })) : ''}</span></button>
+          + `${c.toSide ? T('conn.entryFrom', { side: sideLabel(c.toSide) }) : ''}</span></button>
       </div></div>`;
 
   const covered = blockOnConn(c.id);
   if (covered){
     h += `<div class="rdi b ${covered.block.done ? 'off' : ''}">
-      <div class="n">⛔ ${esc(t('conn.blockedBy', { name: covered.block.nm }))}`
-      + `${covered.block.done ? esc(t('room.solvedSuffix')) : ''}</div>
-      ${covered.block.key ? `<div class="k"><b>${esc(t('block.keyLabel'))}</b> ${esc(covered.block.key)}</div>` : ''}
+      <div class="n">⛔ ${T('conn.blockedBy', { name: covered.block.nm })}`
+      + `${covered.block.done ? T('room.solvedSuffix') : ''}</div>
+      ${covered.block.key ? `<div class="k"><b>${T('block.keyLabel')}</b> ${esc(covered.block.key)}</div>` : ''}
       <div class="k"><button class="linkbtn" data-goto="${esc(covered.scene.id)}">${esc(covered.scene.name)}</button></div>
     </div>`;
   }
-  if (c.desc) h += `<div class="rd"><h4>${esc(t('conn.howItWorks'))}</h4><div style="color:#CBD3C9">${esc(c.desc)}</div></div>`;
-  if (c.counters.length) h += `<div class="rd"><h4>${esc(t('view.counters'))}</h4>${ctrRow(c, 'c')}</div>`;
+  if (c.desc) h += `<div class="rd"><h4>${T('conn.howItWorks')}</h4><div style="color:#CBD3C9">${esc(c.desc)}</div></div>`;
+  if (c.counters.length) h += `<div class="rd"><h4>${T('view.counters')}</h4>${ctrRow(c, 'c')}</div>`;
   h += tokenRow(t('view.tokens'), tokensAt('conn', c.id));
 
   return h + `</div>`;

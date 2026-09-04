@@ -7,7 +7,7 @@
  * into an exported board.
  */
 
-import { esc } from '../util/html.js';
+import { esc, T } from '../util/html.js';
 import { t } from '../i18n/index.js';
 import { el, toast } from '../util/dom.js';
 import { loadConfig, saveConfig, clearConfig, isConfigured, shareLink, deviceId }
@@ -81,47 +81,47 @@ function sheet(cfg){
   const connected = isConfigured(cfg) && cfg.enabled;
   return `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="syncTitle">
     <header>
-      <h2 id="syncTitle">${esc(t('sync.title'))}</h2>
+      <h2 id="syncTitle">${T('sync.title')}</h2>
       <button class="btn sm" data-sync-close>✕</button>
     </header>
     <div class="body">
-      <p class="hint">${esc(t('sync.intro'))}</p>
+      <p class="hint">${T('sync.intro')}</p>
 
       <div class="grid2">
-        <label class="f"><span>${esc(t('sync.owner'))}</span>
+        <label class="f"><span>${T('sync.owner')}</span>
           <input type="text" id="syncOwner" placeholder="FieryBeaver" value="${esc(cfg.owner)}"></label>
-        <label class="f"><span>${esc(t('sync.repo'))}</span>
+        <label class="f"><span>${T('sync.repo')}</span>
           <input type="text" id="syncRepo" placeholder="epic-boards" value="${esc(cfg.repo)}"></label>
       </div>
       <div class="grid2">
-        <label class="f"><span>${esc(t('sync.path'))}</span>
+        <label class="f"><span>${T('sync.path')}</span>
           <input type="text" id="syncPath" placeholder="board.json" value="${esc(cfg.path)}"></label>
-        <label class="f"><span>${esc(t('sync.branch'))}</span>
+        <label class="f"><span>${T('sync.branch')}</span>
           <input type="text" id="syncBranch" placeholder="main" value="${esc(cfg.branch)}"></label>
       </div>
 
-      <label class="f"><span>${esc(t('sync.token'))}</span>
+      <label class="f"><span>${T('sync.token')}</span>
         <input type="password" id="syncToken" autocomplete="off" spellcheck="false"
           placeholder="github_pat_…" value="${esc(cfg.token)}"></label>
 
       <p class="note">${t('sync.tokenNote')}</p>
 
       <div class="row">
-        <button class="btn" id="syncTest">${esc(t('sync.test'))}</button>
+        <button class="btn" id="syncTest">${T('sync.test')}</button>
         <button class="btn acc" id="syncConnect">${esc(connected ? t('sync.reconnect') : t('sync.connect'))}</button>
-        <button class="btn" id="syncNow" ${connected ? '' : 'disabled'}>${esc(t('sync.syncNow'))}</button>
+        <button class="btn" id="syncNow" ${connected ? '' : 'disabled'}>${T('sync.syncNow')}</button>
         <span class="status" id="syncMsg"></span>
       </div>
 
       ${cfg.owner && cfg.repo ? `<div class="sep"></div>
-        <label class="f"><span>${esc(t('sync.shareLabel'))}</span>
+        <label class="f"><span>${T('sync.shareLabel')}</span>
           <input type="text" id="syncShare" readonly value="${esc(shareLink(cfg))}"></label>
-        <button class="btn sm" id="syncCopy">${esc(t('sync.copyLink'))}</button>` : ''}
+        <button class="btn sm" id="syncCopy">${T('sync.copyLink')}</button>` : ''}
 
       <div class="sep"></div>
       <div class="row">
-        <button class="btn warn" id="syncForget">${esc(t('sync.forget'))}</button>
-        <span class="hint" style="margin:0">${esc(t('sync.thisDevice'))} <code>${esc(deviceId())}</code></span>
+        <button class="btn warn" id="syncForget">${T('sync.forget')}</button>
+        <span class="hint" style="margin:0">${T('sync.thisDevice')} <code>${esc(deviceId())}</code></span>
       </div>
     </div>
   </div>`;

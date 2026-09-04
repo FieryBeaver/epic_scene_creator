@@ -53,7 +53,7 @@ export function isConfigured(cfg){
 }
 
 /** `#sync=owner/repo/path...` — an invite another DM can click. */
-export function fromHash(hash = (typeof location !== 'undefined' ? location.hash : '')){
+function fromHash(hash = (typeof location !== 'undefined' ? location.hash : '')){
   const m = /[#&]sync=([^&]+)/.exec(hash || '');
   if (!m) return {};
   const parts = decodeURIComponent(m[1]).split('/').filter(Boolean);

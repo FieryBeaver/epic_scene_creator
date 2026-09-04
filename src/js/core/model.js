@@ -8,7 +8,7 @@
 
 import { t } from '../i18n/index.js';
 
-import { S, uid, byId, mark, scene, conn, sel, setSel } from './state.js';
+import { S, uid, mark, scene, conn, sel, setSel } from './state.js';
 import { SCENE_COLORS, tokenTypeName, tokenTypeColor } from './constants.js';
 import { locs, locName, locIcon } from './locations.js';
 

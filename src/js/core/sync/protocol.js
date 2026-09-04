@@ -61,10 +61,6 @@ export function newer(a, b){
   return a[2] >= b[2] ? a : b;
 }
 
-export function isNewer(a, b){
-  return newer(a, b) === a && !sameStamp(a, b);
-}
-
 export function sameStamp(a, b){
   return !!a && !!b && a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
 }

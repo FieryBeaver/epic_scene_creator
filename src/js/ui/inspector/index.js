@@ -5,7 +5,7 @@
 
 import { sel, mode, scene, conn, token } from '../../core/state.js';
 import { el } from '../../util/dom.js';
-import { esc } from '../../util/html.js';
+import { T } from '../../util/html.js';
 import { t } from '../../i18n/index.js';
 import { inspScene } from './scene.js';
 import { inspConn } from './connection.js';
@@ -36,27 +36,27 @@ function emptyPanel(){
 
 function emptyView(){
   return `<div class="ihead">
-      <div class="t">${esc(t('empty.viewTitle'))}</div>
-      <div class="s">${esc(t('empty.viewSub'))}</div>
+      <div class="t">${T('empty.viewTitle')}</div>
+      <div class="s">${T('empty.viewSub')}</div>
     </div>
     <div class="ipad">
-      <p class="hint">${esc(t('empty.viewHint'))}</p>
+      <p class="hint">${T('empty.viewHint')}</p>
       <ul class="tight" style="color:var(--dim);font-size:12px">
-        <li>${esc(t('empty.viewL1'))}</li>
-        <li>${esc(t('empty.viewL2'))}</li>
-        <li>${esc(t('empty.viewL3'))}</li>
-        <li>${esc(t('empty.viewL4'))}</li>
+        <li>${T('empty.viewL1')}</li>
+        <li>${T('empty.viewL2')}</li>
+        <li>${T('empty.viewL3')}</li>
+        <li>${T('empty.viewL4')}</li>
       </ul>
     </div>`;
 }
 
 function emptyEdit(){
   return `<div class="ihead">
-      <div class="t">${esc(t('empty.editTitle'))}</div>
-      <div class="s">${esc(t('empty.editSub'))}</div>
+      <div class="t">${T('empty.editTitle')}</div>
+      <div class="s">${T('empty.editSub')}</div>
     </div>
     <div class="ipad">
-      <p class="hint">${esc(t('empty.quickStart'))}</p>
+      <p class="hint">${T('empty.quickStart')}</p>
       <ul class="tight" style="color:var(--dim);font-size:12px">
         <li>${t('empty.editL1')}</li>
         <li>${t('empty.editL2')}</li>
@@ -68,6 +68,6 @@ function emptyEdit(){
       <div class="sep"></div>
       <p class="hint">${t('empty.firstTime')}</p>
       <div class="sep"></div>
-      <p class="hint">${esc(t('empty.legend'))}</p>
+      <p class="hint">${T('empty.legend')}</p>
     </div>`;
 }

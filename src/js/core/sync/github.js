@@ -11,7 +11,7 @@
 
 const API = 'https://api.github.com';
 
-export class HttpError extends Error {
+class HttpError extends Error {
   constructor(status, message, body){
     super(message);
     this.name = 'HttpError';

@@ -9,8 +9,7 @@
 import { S, sel, scene } from '../core/state.js';
 import { siblings, tokensAt, blockOnConn } from '../core/model.js';
 import { tokenTypeColor } from '../core/constants.js';
-import { t } from '../i18n/index.js';
-import { esc, safeColor } from '../util/html.js';
+import { esc, T, safeColor } from '../util/html.js';
 import { SIDE_VEC, SIDE_SYM, edgeAt, edgePoint, offsetSegment,
   leaveDirection, curveHandles, curvePath, curveMid } from '../util/geometry.js';
 import { nodeSize } from './nodes.js';
@@ -132,12 +131,12 @@ function renderEdgeLabels(world){
 
     let html = `<span class="chip clk elab" data-conn="${esc(c.id)}"`
       + ` style="border-color:${isSel ? '#D08A34' : '#3A4941'}"`
-      + `${blocked ? ` title="${esc(t('conn.blockedBy', { name: covered.block.nm }))}"` : ''}>`
+      + `${blocked ? ` title="${T('conn.blockedBy', { name: covered.block.nm })}"` : ''}>`
       + `${c.open === false ? '✕ ' : ''}`
       + `${blocked ? '<i class="blk">⛔</i> ' : ''}`
       + `${esc(c.name)}${sideMark(c)}`
       + `${c.dir === 'one' ? ' →' : ' ↔'}`
-      + `${c.minutes ? ` · ${esc(c.minutes)}${esc(t('conn.min'))}` : ''}</span>`;
+      + `${c.minutes ? ` · ${esc(c.minutes)}${T('conn.min')}` : ''}</span>`;
 
     if (c.counters.length){
       html += `<span class="erow">` + c.counters.map(k =>

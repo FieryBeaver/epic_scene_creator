@@ -12,7 +12,7 @@ import { esc } from '../util/html.js';
 import { el } from '../util/dom.js';
 
 /** Fill every element in the markup that declares a key. */
-export function applyStaticText(root = document){
+function applyStaticText(root = document){
   root.querySelectorAll('[data-i18n]').forEach(node => {
     node.textContent = t(node.getAttribute('data-i18n'));
   });
@@ -24,7 +24,7 @@ export function applyStaticText(root = document){
   });
 }
 
-export function renderLangChoice(){
+function renderLangChoice(){
   const box = el('langChoice');
   if (!box) return;
   const current = getLocale();

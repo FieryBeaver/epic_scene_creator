@@ -3,7 +3,7 @@
 import { tokenHost } from '../../core/model.js';
 import { TOKTYPE, tokenTypeName, tokenTypeColor } from '../../core/constants.js';
 import { t } from '../../i18n/index.js';
-import { esc, safeColor } from '../../util/html.js';
+import { esc, T, safeColor } from '../../util/html.js';
 import { sceneOptions } from './shared.js';
 
 const typeName = tok => tokenTypeName(tok.type);
@@ -16,34 +16,34 @@ export function inspToken(tok){
 
   return `<div class="ihead">
       <div class="t">${esc(tok.name)}</div>
-      <div class="s">${esc(t('token.kind', { type: typeName(tok) }))}</div>
+      <div class="s">${T('token.kind', { type: typeName(tok) })}</div>
     </div>
     <div class="ipad">
-      <fieldset><legend>${esc(t('token.legend'))}</legend>
-        <label class="f"><span>${esc(t('token.name'))}</span>
+      <fieldset><legend>${T('token.legend')}</legend>
+        <label class="f"><span>${T('token.name')}</span>
           <input type="text" data-path="t:${id}:name" value="${esc(tok.name)}"></label>
         <div class="grid2">
-          <label class="f"><span>${esc(t('token.type'))}</span>
+          <label class="f"><span>${T('token.type')}</span>
             <select data-path="t:${id}:type">
               ${Object.entries(TOKTYPE).map(([k, v]) =>
                 `<option value="${k}"${tok.type === k ? ' selected' : ''}>${esc(tokenTypeName(k))}</option>`).join('')}
             </select></label>
-          <label class="f"><span>${esc(t('token.color'))}</span>
+          <label class="f"><span>${T('token.color')}</span>
             <input type="color" data-path="t:${id}:color" value="${esc(typeColor(tok))}"></label>
         </div>
-        <label class="f"><span>${esc(t('token.hp'))}</span>
+        <label class="f"><span>${T('token.hp')}</span>
           <input type="text" data-path="t:${id}:hp" value="${esc(tok.hp || '')}"></label>
-        <label class="f"><span>${esc(t('token.notes'))}</span>
+        <label class="f"><span>${T('token.notes')}</span>
           <textarea data-path="t:${id}:notes">${esc(tok.notes || '')}</textarea></label>
       </fieldset>
 
-      <fieldset><legend>${esc(t('token.place'))}</legend>
+      <fieldset><legend>${T('token.place')}</legend>
         <div>${hostLink(tok, host)}</div>
-        <label class="f" style="margin-top:7px"><span>${esc(t('token.moveTo'))}</span>
+        <label class="f" style="margin-top:7px"><span>${T('token.moveTo')}</span>
           <select data-movetok="${id}">
             ${sceneOptions(tok.at && tok.at.kind === 'scene' ? tok.at.id : '', true)}</select></label>
-        <p class="hint">${esc(t('token.dragHint'))}</p>
-        <button class="x" data-del-token="${id}">${esc(t('token.delete'))}</button>
+        <p class="hint">${T('token.dragHint')}</p>
+        <button class="x" data-del-token="${id}">${T('token.delete')}</button>
       </fieldset>
     </div>`;
 }
@@ -54,10 +54,10 @@ export function readToken(tok){
   const host = tokenHost(tok);
   return `<div class="ihead">
       <div class="t">${esc(tok.name)}</div>
-      <div class="s">${esc(t('token.kind', { type: typeName(tok) }))}</div>
+      <div class="s">${T('token.kind', { type: typeName(tok) })}</div>
     </div>
     <div class="ipad">
-      <div class="rd"><h4>${esc(t('token.state'))}</h4>
+      <div class="rd"><h4>${T('token.state')}</h4>
         <div class="row">
           <span class="chip" style="border-color:${typeColor(tok)};color:${typeColor(tok)}">
             ${esc(typeName(tok))}</span>
@@ -65,13 +65,13 @@ export function readToken(tok){
         </div>
         ${tok.notes ? `<div class="rdi" style="margin-top:6px"><div class="w">${esc(tok.notes)}</div></div>` : ''}
       </div>
-      <div class="rd"><h4>${esc(t('token.whereStands'))}</h4>${hostLink(tok, host)}</div>
+      <div class="rd"><h4>${T('token.whereStands')}</h4>${hostLink(tok, host)}</div>
     </div>`;
 }
 
 function hostLink(tok, host){
-  if (!host) return `<span class="empty">${esc(t('token.offBoard'))}</span>`;
+  if (!host) return `<span class="empty">${T('token.offBoard')}</span>`;
   return tok.at.kind === 'scene'
     ? `<button class="linkbtn" data-goto="${esc(host.id)}">→ ${esc(host.name)}</button>`
-    : `<button class="btn sm" data-selconn="${esc(host.id)}">${esc(t('token.onConn', { name: host.name }))}</button>`;
+    : `<button class="btn sm" data-selconn="${esc(host.id)}">${T('token.onConn', { name: host.name })}</button>`;
 }

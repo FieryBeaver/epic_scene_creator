@@ -88,8 +88,3 @@ export function t(key, vars){
   return String(text).replace(/\{(\w+)\}/g, (whole, name) =>
     (Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : whole));
 }
-
-/** Every key a dictionary defines — used by the tests. */
-export function keysOf(code){
-  return Object.keys(DICTS[code] || {});
-}

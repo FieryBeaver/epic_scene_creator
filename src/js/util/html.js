@@ -14,6 +14,15 @@ export function esc(s){
 }
 
 /**
+ * Translated and escaped — what nearly every string in the markup needs.
+ * Spelling it out at all two hundred and fifty call sites buried the markup
+ * in punctuation.
+ */
+export function T(key, vars){
+  return esc(t(key, vars));
+}
+
+/**
  * Escape a value that lands inside a `style="…"` attribute.
  *
  * `esc()` is not enough there: a CSS value may not contain quotes, semicolons

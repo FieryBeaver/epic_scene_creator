@@ -11,7 +11,7 @@ import { t } from '../i18n/index.js';
 
 import { marked, setMarked, mark, scene, mode } from '../core/state.js';
 import { delScene, duplicateScene } from '../core/model.js';
-import { esc } from '../util/html.js';
+import { esc, T } from '../util/html.js';
 import { el } from '../util/dom.js';
 
 export function initSelBar(){
@@ -34,11 +34,11 @@ export function renderSelBar(){
 
   const anyOpen = ids.some(id => !scene(id).collapsed);
   bar.hidden = false;
-  bar.innerHTML = `<span class="n">${esc(t('sel.count', { n: ids.length }))}</span>
+  bar.innerHTML = `<span class="n">${T('sel.count', { n: ids.length })}</span>
     <button class="btn sm" data-bulk="fold">${esc(anyOpen ? t('sel.fold') : t('sel.unfold'))} <kbd>c</kbd></button>
-    <button class="btn sm" data-bulk="duplicate">${esc(t('sel.duplicate'))} <kbd>Ctrl+D</kbd></button>
-    <button class="btn sm" data-bulk="delete">${esc(t('sel.delete'))} <kbd>Del</kbd></button>
-    <button class="btn sm" data-bulk="clear" title="${esc(t('sel.clearTip'))}">✕</button>`;
+    <button class="btn sm" data-bulk="duplicate">${T('sel.duplicate')} <kbd>Ctrl+D</kbd></button>
+    <button class="btn sm" data-bulk="delete">${T('sel.delete')} <kbd>Del</kbd></button>
+    <button class="btn sm" data-bulk="clear" title="${T('sel.clearTip')}">✕</button>`;
 }
 
 function run(action){

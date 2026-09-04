@@ -58,10 +58,6 @@ export function setMarked(ids){
   marked = new Set(ids || []);
 }
 
-export function isMarked(id){
-  return marked.has(id);
-}
-
 export function toggleMarked(id){
   if (marked.has(id)) marked.delete(id);
   else marked.add(id);

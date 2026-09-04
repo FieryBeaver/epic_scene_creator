@@ -8,7 +8,7 @@
 
 import { t } from '../i18n/index.js';
 
-import { esc } from '../util/html.js';
+import { esc, T } from '../util/html.js';
 import { el } from '../util/dom.js';
 
 /** Key label, then the key of the sentence describing it. */
@@ -56,14 +56,14 @@ export function showShortcuts(){
   const box = el('helpModal');
   box.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <header>
-      <h2 id="helpTitle">${esc(t('keys.title'))}</h2>
+      <h2 id="helpTitle">${T('keys.title')}</h2>
       <button class="btn sm" data-help-close>✕</button>
     </header>
     <div class="body">
       ${GROUPS.map(([title, rows]) => `<div class="keys">
-        <h4>${esc(t(title))}</h4>
+        <h4>${T(title)}</h4>
         ${rows.map(([k, what]) =>
-          `<div class="krow"><kbd>${esc(label(k))}</kbd><span>${esc(t(what))}</span></div>`).join('')}
+          `<div class="krow"><kbd>${esc(label(k))}</kbd><span>${T(what)}</span></div>`).join('')}
       </div>`).join('')}
     </div>
   </div>`;
@@ -72,7 +72,7 @@ export function showShortcuts(){
   if (close) close.focus();
 }
 
-export function hideShortcuts(){
+function hideShortcuts(){
   const box = el('helpModal');
   box.hidden = true;
   box.innerHTML = '';

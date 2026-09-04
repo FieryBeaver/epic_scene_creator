@@ -93,7 +93,9 @@ fieldset,.rd{min-width:0}
 .rdroom-head.bare{cursor:default}
 .rdroom-head.bare:hover{background:none}
 .rdroom-head .caret{color:var(--dim);font-size:10px;flex:0 0 9px}
-.rdroom-head .n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Same label element as the edit form — see roomLabel() in inspector/shared.js. */
+.rdroom-head .rname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-weight:600}
 .rdroom-head .rbadges{display:flex;gap:3px;flex:0 0 auto}
 .rdroom-head .tag{flex:0 0 auto}
 .rdroom-body{padding:1px 6px 5px 16px}

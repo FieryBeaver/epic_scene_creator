@@ -59,7 +59,7 @@ Everything renders from state; nothing here decides what the state should be.
 | `dirty.js` | The dot on Export saying the file on disk is behind. |
 | `inspector/folds.js` | Which sections are open, per device. |
 | `rail.js` | The left tab strip and its panes, including one per registry. |
-| `inspector/` | The right panel: `scene.js`, `connection.js`, `token.js` for editing, `readonly.js` for view mode, `shared.js` for the fragments both use. |
+| `inspector/` | The right panel: `scene.js`, `rooms.js`, `connection.js`, `token.js` for editing, `readonly.js` for view mode, `shared.js` for the fragments both use, `folds.js` for what is open. |
 | `panels.js` | Side panel widths and collapse, stored on the board. |
 
 ### `input/` — reacting
@@ -179,6 +179,17 @@ need that height to find where to attach. Asking the DOM mid-drag would force
 a layout every frame, so `ui/nodes.js` measures every card once after each
 board render and serves the cache. Anything that changes card content goes
 through `renderBoard()`, which re-measures.
+
+## Two habits that keep the markup readable
+
+**`T('key')`, not `esc(t('key'))`.** Nearly every string in the markup is both
+translated and escaped; spelling that out at 250 call sites buried the HTML in
+punctuation. `esc()` stays for values, `T()` is for keys.
+
+**The two panels share their fragments.** The edit form and the briefing draw
+the same room header, the same cross-reference links, the same counter strips.
+Those live in `inspector/shared.js`; when they were copied the two had already
+drifted on which of them checked `hasTre` versus `isTreasure`.
 
 ## Escaping
 

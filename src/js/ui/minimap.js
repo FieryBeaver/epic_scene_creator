@@ -89,7 +89,7 @@ function transform(){
   return { x0, y0, scale };
 }
 
-export function drawMinimap(){
+function drawMinimap(){
   if (!canvas || !box || box.hidden) return;
 
   const dpr = window.devicePixelRatio || 1;

@@ -10,7 +10,7 @@ import { hostOf } from '../core/registries.js';
 import { tokenTypeName, tokenTypeColor } from '../core/constants.js';
 import { t } from '../i18n/index.js';
 import { TPL_BOSS } from '../core/templates.js';
-import { esc, safeColor } from '../util/html.js';
+import { esc, T, safeColor } from '../util/html.js';
 import { el } from '../util/dom.js';
 import { sceneOptions } from './inspector/shared.js';
 
@@ -37,8 +37,8 @@ export function renderRail(){
  */
 export function renderTabs(){
   el('tabStrip').innerHTML =
-    `<button data-p="scenes">${esc(t('rail.scenes'))}</button>`
-    + `<button data-p="tokens">${esc(t('rail.tokens'))}</button>`
+    `<button data-p="scenes">${T('rail.scenes')}</button>`
+    + `<button data-p="tokens">${T('rail.tokens')}</button>`
     + regs().map(r => `<button data-p="reg-${esc(r.id)}">${esc(r.sym || '')} ${esc(r.nm)}</button>`).join('');
   markActive();
 }
@@ -71,21 +71,21 @@ export function renderPaneScenes(){
   const hits = S.scenes.filter(matches);
   const filtering = !!query;
 
-  let h = `<h3>${esc(t('rail.scenes'))} · ${hits.length}`
-    + `${filtering ? `<span class="of">${esc(t('rail.of', { total: S.scenes.length }))}</span>` : ''}</h3>`;
+  let h = `<h3>${T('rail.scenes')} · ${hits.length}`
+    + `${filtering ? `<span class="of">${T('rail.of', { total: S.scenes.length })}</span>` : ''}</h3>`;
 
   if (S.scenes.length > 4 || filtering){
     h += `<div class="srch">
-      <input type="search" id="sceneSearch" class="srch-in" placeholder="${esc(t('rail.searchPlaceholder'))}"
-        aria-label="${esc(t('rail.searchLabel'))}" value="${esc(query)}">
-      ${filtering ? `<button class="srch-x" data-search-clear title="${esc(t('rail.clear'))}">✕</button>` : ''}
+      <input type="search" id="sceneSearch" class="srch-in" placeholder="${T('rail.searchPlaceholder')}"
+        aria-label="${T('rail.searchLabel')}" value="${esc(query)}">
+      ${filtering ? `<button class="srch-x" data-search-clear title="${T('rail.clear')}">✕</button>` : ''}
     </div>`;
   }
 
   if (!S.scenes.length){
     h += `<p class="hint">${t('rail.noScenes')}</p>`;
   } else if (!hits.length){
-    h += `<p class="hint">${esc(t('rail.noMatches', { query }))}</p>`;
+    h += `<p class="hint">${T('rail.noMatches', { query })}</p>`;
   }
 
   hits.forEach(s => {
@@ -157,22 +157,22 @@ export function markSearchFocused(){
 /* ---------- tokens ---------- */
 
 function renderPaneTokens(){
-  let h = `<h3>${esc(t('rail.tokens'))} · ${S.tokens.length}</h3>
-    <p class="hint">${esc(t('rail.tokensHint'))}</p>
+  let h = `<h3>${T('rail.tokens')} · ${S.tokens.length}</h3>
+    <p class="hint">${T('rail.tokensHint')}</p>
     <div class="row eonly" style="margin-bottom:8px">
-      <button class="btn sm" data-newtok="boss">${esc(t('rail.addBoss'))}</button>
-      <button class="btn sm" data-newtok="scouts">${esc(t('rail.addScouts'))}</button>
-      <button class="btn sm" data-newtok="ally">${esc(t('rail.addAlly'))}</button>
-      <button class="btn sm" data-newtok="party">${esc(t('rail.addParty'))}</button>
+      <button class="btn sm" data-newtok="boss">${T('rail.addBoss')}</button>
+      <button class="btn sm" data-newtok="scouts">${T('rail.addScouts')}</button>
+      <button class="btn sm" data-newtok="ally">${T('rail.addAlly')}</button>
+      <button class="btn sm" data-newtok="party">${T('rail.addParty')}</button>
     </div>
-    <label class="f eonly"><span>${esc(t('rail.bossQuick'))}</span>
+    <label class="f eonly"><span>${T('rail.bossQuick')}</span>
       <select data-boss-tpl>
-        <option value="">${esc(t('rail.choose'))}</option>
+        <option value="">${T('rail.choose')}</option>
         ${TPL_BOSS.map(b => `<option>${esc(b)}</option>`).join('')}
       </select></label>
     <div class="sep"></div>`;
 
-  if (!S.tokens.length) h += `<p class="hint">${esc(t('rail.noTokens'))}</p>`;
+  if (!S.tokens.length) h += `<p class="hint">${T('rail.noTokens')}</p>`;
 
   S.tokens.forEach(tok => {
     const host = tokenHost(tok);
@@ -183,9 +183,9 @@ function renderPaneTokens(){
       <div style="margin-top:4px">${host
         ? (tok.at.kind === 'scene'
             ? `<button class="linkbtn" data-goto="${esc(host.id)}">→ ${esc(host.name)}</button>`
-            : `<button class="linkbtn" data-selconn="${esc(host.id)}">${esc(t('rail.onConn', { name: host.name }))}</button>`)
-        : `<span class="empty">${esc(t('rail.offBoard'))}</span>`}
-        <button class="btn sm" data-seltoken="${esc(tok.id)}" style="float:right">${esc(t('rail.edit'))}</button></div>
+            : `<button class="linkbtn" data-selconn="${esc(host.id)}">${T('rail.onConn', { name: host.name })}</button>`)
+        : `<span class="empty">${T('rail.offBoard')}</span>`}
+        <button class="btn sm" data-seltoken="${esc(tok.id)}" style="float:right">${T('rail.edit')}</button></div>
     </div>`;
   });
 
@@ -232,24 +232,24 @@ function regPaneHtml(r){
   const id = esc(r.id);
 
   let h = `<h3>${esc(r.sym || '')} ${esc(r.nm)} · ${placed}/${r.items.length}</h3>
-    <p class="hint">${esc(t('reg.hint'))}</p>
+    <p class="hint">${T('reg.hint')}</p>
     <div class="eonly" style="border:1px solid var(--line);border-radius:5px;padding:7px;margin-bottom:9px">
       <div class="grid2">
-        <label class="f"><span>${esc(t('reg.listName'))}</span>
+        <label class="f"><span>${T('reg.listName')}</span>
           <input type="text" data-path="r:${id}:nm" value="${esc(r.nm)}"></label>
-        <label class="f"><span>${esc(t('reg.glyph'))}</span>
+        <label class="f"><span>${T('reg.glyph')}</span>
           <input type="text" data-path="r:${id}:sym" value="${esc(r.sym || '')}"></label>
       </div>
       <div class="grid2">
-        <label class="f"><span>${esc(t('reg.roomWord'))}</span>
+        <label class="f"><span>${T('reg.roomWord')}</span>
           <input type="text" placeholder="${esc(r.nm)}" data-path="r:${id}:one" value="${esc(r.one || '')}"></label>
-        <label class="f"><span>${esc(t('reg.color'))}</span>
+        <label class="f"><span>${T('reg.color')}</span>
           <input type="color" data-path="r:${id}:color" value="${esc(safeColor(r.color))}"></label>
       </div>
-      <button class="x" data-delreg="${id}">${esc(t('reg.deleteList'))}</button>
+      <button class="x" data-delreg="${id}">${T('reg.deleteList')}</button>
     </div>`;
 
-  if (!r.items.length) h += `<p class="hint">${esc(t('reg.empty'))}</p>`;
+  if (!r.items.length) h += `<p class="hint">${T('reg.empty')}</p>`;
 
   r.items.forEach(it => {
     const host = hostOf(r.id, it.id);
@@ -258,25 +258,25 @@ function regPaneHtml(r){
       <div class="cn">${esc(it.sym || r.sym || '◆')} ${esc(it.nm)}</div>
       ${it.note ? `<div class="cs">${esc(it.note)}</div>` : ''}
       <div class="eonly grid2" style="margin-top:5px">
-        <input type="text" placeholder="${esc(t('reg.itemName'))}" data-path="${p}:nm" value="${esc(it.nm)}">
-        <input type="text" placeholder="${esc(t('reg.itemGlyph'))}" data-path="${p}:sym" value="${esc(it.sym || '')}">
+        <input type="text" placeholder="${T('reg.itemName')}" data-path="${p}:nm" value="${esc(it.nm)}">
+        <input type="text" placeholder="${T('reg.itemGlyph')}" data-path="${p}:sym" value="${esc(it.sym || '')}">
       </div>
-      <input class="eonly" type="text" style="margin-top:4px" placeholder="${esc(t('reg.itemNote'))}"
+      <input class="eonly" type="text" style="margin-top:4px" placeholder="${T('reg.itemNote')}"
         data-path="${p}:note" value="${esc(it.note || '')}">
-      <label class="f eonly" style="margin-top:5px"><span>${esc(t('reg.roomDesc'))}</span>
+      <label class="f eonly" style="margin-top:5px"><span>${T('reg.roomDesc')}</span>
         <textarea data-path="${p}:desc"
-          placeholder="${esc(t('reg.roomDescPlaceholder'))}">${esc(it.desc || '')}</textarea></label>
+          placeholder="${T('reg.roomDescPlaceholder')}">${esc(it.desc || '')}</textarea></label>
       ${it.desc && !host ? `<div class="cs" style="margin-top:3px">${esc(it.desc)}</div>` : ''}
       <div style="margin-top:5px">${host
         ? `<button class="linkbtn" data-goto="${esc(host.id)}">→ ${esc(host.name)}</button>`
-        : `<span class="empty">${esc(t('reg.unplaced'))}</span>`}</div>
+        : `<span class="empty">${T('reg.unplaced')}</span>`}</div>
       <div class="eonly row" style="margin-top:5px">
         <select style="flex:1" data-setitem="${id}:${esc(it.id)}">
-          <option value="">${esc(t('reg.chooseScene'))}</option>${sceneOptions(host ? host.id : '', false)}</select>
+          <option value="">${T('reg.chooseScene')}</option>${sceneOptions(host ? host.id : '', false)}</select>
         <button class="x" data-delitem="${id}:${esc(it.id)}">✕</button>
       </div>
     </div>`;
   });
 
-  return h + `<button class="btn sm eonly" data-additem="${id}">${esc(t('reg.addItem'))}</button>`;
+  return h + `<button class="btn sm eonly" data-additem="${id}">${T('reg.addItem')}</button>`;
 }

@@ -9,7 +9,7 @@ import { neighborsOf, owedBy, tokensAt } from '../core/model.js';
 import { locs, isTreasure, locName, locIcon, locColor, locDesc } from '../core/locations.js';
 import { tokenTypeColor, dangerColor } from '../core/constants.js';
 import { t } from '../i18n/index.js';
-import { esc, safeColor } from '../util/html.js';
+import { esc, T, safeColor } from '../util/html.js';
 import { el } from '../util/dom.js';
 import { measureNodes } from './nodes.js';
 import { drawEdges } from './edges.js';
@@ -53,10 +53,10 @@ function collapsedSummary(s){
   const rooms = locs(s).length;
   const toks = tokensAt('scene', s.id).length;
   return `<div class="fold-sum">`
-    + `<span title="${esc(t('board.activeDangers'))}">☠ ${dangers}</span>`
-    + `<span title="${esc(t('board.openBlocks'))}">⛔ ${blocks}</span>`
-    + `<span title="${esc(t('board.rooms'))}">▣ ${rooms}</span>`
-    + (toks ? `<span title="${esc(t('board.tokens'))}">◉ ${toks}</span>` : '')
+    + `<span title="${T('board.activeDangers')}">☠ ${dangers}</span>`
+    + `<span title="${T('board.openBlocks')}">⛔ ${blocks}</span>`
+    + `<span title="${T('board.rooms')}">▣ ${rooms}</span>`
+    + (toks ? `<span title="${T('board.tokens')}">◉ ${toks}</span>` : '')
     + `</div>`;
 }
 
@@ -73,7 +73,7 @@ function nodeMarkup(s){
     + ` title="${esc(s.collapsed ? t('board.expand') : t('board.collapse'))} (c)"`
     + ` aria-expanded="${s.collapsed ? 'false' : 'true'}">${s.collapsed ? '▸' : '▾'}</button>`
     + `<div class="nm">${esc(s.name)}</div>`
-    + `<div class="dm">${s.dm ? esc(t('board.dm', { name: s.dm })) : esc(t('board.noDm'))}</div>`
+    + `<div class="dm">${s.dm ? T('board.dm', { name: s.dm }) : T('board.noDm')}</div>`
     + `</div>`;
 
   // Collapsed: the header and the counts, nothing else. Enough to read the
@@ -86,20 +86,20 @@ function nodeMarkup(s){
   const dgStyle = worstDanger
     ? `border-color:${dangerColor(worstDanger)};color:${dangerColor(worstDanger)}` : '';
   h += `<div class="row">`
-    + `<span class="chip dg" title="${esc(t('board.activeDangers'))}" style="${dgStyle}">☠ ${activeDangers.length}</span>`
-    + `<span class="chip tr" title="${esc(t('board.unlooted'))}">◈ ${unlooted.length}/${treasures.length}</span>`
-    + `<span class="chip bk" title="${esc(t('board.openBlocks'))}">⛔ ${openBlocks.length}/${s.blocks.length}</span>`;
+    + `<span class="chip dg" title="${T('board.activeDangers')}" style="${dgStyle}">☠ ${activeDangers.length}</span>`
+    + `<span class="chip tr" title="${T('board.unlooted')}">◈ ${unlooted.length}/${treasures.length}</span>`
+    + `<span class="chip bk" title="${T('board.openBlocks')}">⛔ ${openBlocks.length}/${s.blocks.length}</span>`;
 
   const pending = (s.events || []).filter(e => !e.fired);
   if (pending.length){
-    h += `<span class="chip ev" title="${esc(t('board.pendingEvents',
-      { list: pending.map(e => e.nm).join('; ') }))}">⚡ ${pending.length}</span>`;
+    h += `<span class="chip ev" title="${T('board.pendingEvents',
+      { list: pending.map(e => e.nm).join('; ') })}">⚡ ${pending.length}</span>`;
   }
 
   const owed = owedBy(s.id);
   if (owed.length){
-    h += `<span class="chip owe" title="${esc(t('board.owes',
-      { list: owed.map(o => o.from.name + ' → ' + o.it.nm).join('; ') }))}">↩ ${owed.length}</span>`;
+    h += `<span class="chip owe" title="${T('board.owes',
+      { list: owed.map(o => o.from.name + ' → ' + o.it.nm).join('; ') })}">↩ ${owed.length}</span>`;
   }
   h += `</div>`;
 
@@ -141,7 +141,7 @@ function nodeMarkup(s){
   }
 
   h += `</div><div class="foot eonly">`
-    + `<button class="mini" data-act="link" data-id="${esc(s.id)}">${esc(t('board.connect'))}</button>`
+    + `<button class="mini" data-act="link" data-id="${esc(s.id)}">${T('board.connect')}</button>`
     + `</div>`;
 
   return h;
