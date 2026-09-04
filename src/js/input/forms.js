@@ -7,12 +7,15 @@
  * since the choice can change which fields exist.
  */
 
+import { t } from '../i18n/index.js';
+
 import { sel, setSel, byId, mark, scene, conn, token, reg, uid } from '../core/state.js';
 import { locs, mkLoc, locName } from '../core/locations.js';
 import { place } from '../core/registries.js';
 import { setPath } from '../core/paths.js';
 import { mkToken, newDanger, newBlock, newEvent } from '../core/model.js';
-import { TPL_DANGER, TPL_BLOCK, TPL_TREASURE, TPL_EVENT, TPL_CONN } from '../core/templates.js';
+import { TPL_DANGER, TPL_BLOCK, TPL_TREASURE, TPL_EVENT, TPL_CONN, tplName, tplText }
+  from '../core/templates.js';
 import { renderAll, renderLive } from '../ui/render.js';
 import { toast } from '../util/dom.js';
 import { setSearch, markSearchFocused } from '../ui/rail.js';
@@ -134,7 +137,7 @@ function roomJoinsList(el){
   l.notes = '';       // and its description lives on the item
   mark();
   renderAll();
-  toast(`«${item.nm}» додано до списку «${r.nm}»`);
+  toast(t('msg.joinedList', { item: item.nm, list: r.nm }));
 }
 
 /* ---------- tokens ---------- */
@@ -150,9 +153,9 @@ function moveToken(el){
 function spawnBoss(el){
   if (!el.value) return;
   const at = sel && sel.kind === 'scene' ? { kind: 'scene', id: sel.id } : null;
-  const t = mkToken('boss', el.value + ' (прорвався)', at);
+  const tok = mkToken('boss', t('data.brokeThrough', { name: el.value }), at);
   el.value = '';
-  setSel({ kind: 'token', id: t.id });
+  setSel({ kind: 'token', id: tok.id });
   renderAll();
 }
 
@@ -168,25 +171,41 @@ function applyTemplate(el){
   const s = scene(id);
 
   if (kind === 'danger' && s){
-    const t = TPL_DANGER[index];
-    s.dangers.push(Object.assign(newDanger(), { nm: t.nm, what: t.what, fix: t.fix, lvl: t.lvl }));
+    const tpl = TPL_DANGER[index];
+    s.dangers.push(Object.assign(newDanger(), {
+      nm: tplName('danger', tpl), what: tplText('danger', tpl, 'what'),
+      fix: tplText('danger', tpl, 'fix'), lvl: tpl.lvl,
+    }));
   }
   if (kind === 'block' && s){
-    const t = TPL_BLOCK[index];
-    s.blocks.push(Object.assign(newBlock(), { nm: t.nm, what: t.what, key: t.key }));
+    const tpl = TPL_BLOCK[index];
+    s.blocks.push(Object.assign(newBlock(), {
+      nm: tplName('block', tpl), what: tplText('block', tpl, 'what'),
+      key: tplText('block', tpl, 'key'),
+    }));
   }
   if (kind === 'event' && s){
-    const t = TPL_EVENT[index];
-    s.events.push(Object.assign(newEvent(), { nm: t.nm, trig: t.trig, eff: t.eff }));
+    const tpl = TPL_EVENT[index];
+    s.events.push(Object.assign(newEvent(), {
+      nm: tplName('event', tpl), trig: tplText('event', tpl, 'trig'),
+      eff: tplText('event', tpl, 'eff'),
+    }));
   }
   if (kind === 'treasure' && s){
-    const t = TPL_TREASURE[index];
-    locs(s).push(mkLoc({ nm: t.nm, hasTre: true, tre: t.what, guard: t.guard }));
+    const tpl = TPL_TREASURE[index];
+    locs(s).push(mkLoc({
+      nm: tplName('treasure', tpl), hasTre: true,
+      tre: tplText('treasure', tpl, 'what'), guard: tplText('treasure', tpl, 'guard'),
+    }));
   }
   if (kind === 'conn'){
     const c = conn(id);
-    const t = TPL_CONN[index];
-    if (c && t){ c.name = t.nm; c.dir = t.dir; c.desc = t.desc; }
+    const tpl = TPL_CONN[index];
+    if (c && tpl){
+      c.name = tplName('conn', tpl);
+      c.dir = tpl.dir;
+      c.desc = tplText('conn', tpl, 'desc');
+    }
   }
 
   mark();

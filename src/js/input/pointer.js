@@ -7,6 +7,8 @@
  * of a full rebuild.
  */
 
+import { t } from '../i18n/index.js';
+
 import { S, mode, mark, scene, token, marked, setMarked, toggleMarked } from '../core/state.js';
 import { newConn } from '../core/model.js';
 import { toast, el } from '../util/dom.js';
@@ -97,7 +99,7 @@ function handleLinkClick(nodeE, ev){
       renderAll();
       if (made){
         if (made.duplicate){
-          toast('Ще одне з\'єднання між тими самими сценами — вкажіть боки, щоб їх розвести');
+          toast(t('msg.duplicateConn'));
         }
         select('conn', made.conn.id);
       }

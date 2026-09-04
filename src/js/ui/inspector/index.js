@@ -5,6 +5,8 @@
 
 import { sel, mode, scene, conn, token } from '../../core/state.js';
 import { el } from '../../util/dom.js';
+import { esc } from '../../util/html.js';
+import { t } from '../../i18n/index.js';
 import { inspScene } from './scene.js';
 import { inspConn } from './connection.js';
 import { inspToken, readToken } from './token.js';
@@ -34,40 +36,38 @@ function emptyPanel(){
 
 function emptyView(){
   return `<div class="ihead">
-      <div class="t">Режим перегляду</div>
-      <div class="s">Нічого не редагується</div>
+      <div class="t">${esc(t('empty.viewTitle'))}</div>
+      <div class="s">${esc(t('empty.viewSub'))}</div>
     </div>
     <div class="ipad">
-      <p class="hint">Клікніть сцену на дошці або в списку ліворуч — тут відкриється її повний опис.</p>
+      <p class="hint">${esc(t('empty.viewHint'))}</p>
       <ul class="tight" style="color:var(--dim);font-size:12px">
-        <li>Кожен перехід і кожне посилання на іншу сцену — кнопка. Клік переносить туди.</li>
-        <li>«Ця сцена розв'язує» показує, чиї небезпеки й блоки закриваються саме тут.</li>
-        <li>Лічильники й перетягування токенів працюють — це стан гри, а не редагування.</li>
-        <li>Дошка так само рухається і масштабується.</li>
+        <li>${esc(t('empty.viewL1'))}</li>
+        <li>${esc(t('empty.viewL2'))}</li>
+        <li>${esc(t('empty.viewL3'))}</li>
+        <li>${esc(t('empty.viewL4'))}</li>
       </ul>
     </div>`;
 }
 
 function emptyEdit(){
   return `<div class="ihead">
-      <div class="t">Нічого не вибрано</div>
-      <div class="s">Клікніть сцену, з'єднання або токен</div>
+      <div class="t">${esc(t('empty.editTitle'))}</div>
+      <div class="s">${esc(t('empty.editSub'))}</div>
     </div>
     <div class="ipad">
-      <p class="hint">Швидкий старт:</p>
+      <p class="hint">${esc(t('empty.quickStart'))}</p>
       <ul class="tight" style="color:var(--dim);font-size:12px">
-        <li><b>+ Сцена</b> або подвійний клік по полю — нова сцена.</li>
-        <li><b>🔗 З'єднати</b> — потім клік по двох сценах.</li>
-        <li>Тягніть заголовок сцени, щоб рухати; колесо — зум; тягніть фон — панорама.</li>
-        <li><kbd>Shift</kbd> + тягнути фон — вибрати кілька сцен одразу.</li>
-        <li>Токени тягнуться зі сцени на сцену або на з'єднання.</li>
-        <li><b>Експорт</b> зберігає дошку у файл; решта — у меню <b>⋯</b>.</li>
+        <li>${t('empty.editL1')}</li>
+        <li>${t('empty.editL2')}</li>
+        <li>${t('empty.editL3')}</li>
+        <li>${t('empty.editL4')}</li>
+        <li>${t('empty.editL5')}</li>
+        <li>${t('empty.editL6')}</li>
       </ul>
       <div class="sep"></div>
-      <p class="hint">Уперше тут? <b>⋯ → Демо-розкладка</b> покаже готове підземелля
-        з усіма можливостями. Список клавіш — <kbd>?</kbd>.</p>
+      <p class="hint">${t('empty.firstTime')}</p>
       <div class="sep"></div>
-      <p class="hint">У сцені: кімнати (▣, ◈ зі скарбом, ⛩ гробниці богів, скелетні ключі),
-        небезпеки (☠), блоки (⛔), івенти (⚡) та лічильники.</p>
+      <p class="hint">${esc(t('empty.legend'))}</p>
     </div>`;
 }

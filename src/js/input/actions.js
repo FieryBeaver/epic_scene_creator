@@ -6,6 +6,8 @@
  * rebind anything.
  */
 
+import { t } from '../i18n/index.js';
+
 import { S, sel, byId, mark, scene, conn, regs, reg, uid, setSel } from '../core/state.js';
 import {
   delScene, delConn, delToken, mkToken,
@@ -44,7 +46,7 @@ function onClick(ev){
   /* ---------- deletion ---------- */
   if ((e = hit('data-del'))){ delListItem(e.getAttribute('data-del')); return; }
   if ((e = hit('data-del-scene'))){
-    if (confirm('Видалити сцену разом з її з\'єднаннями?')){
+    if (confirm(t('msg.confirmDeleteScene'))){
       delScene(e.getAttribute('data-del-scene'));
       renderAll();
     }
@@ -211,15 +213,15 @@ function addItem(kind, id){
   const s = scene(id);
 
   if (kind === 'token'){
-    const t = mkToken('other', 'Токен', { kind: 'scene', id });
-    setSel({ kind: 'token', id: t.id });
+    const tok = mkToken('other', t('data.token'), { kind: 'scene', id });
+    setSel({ kind: 'token', id: tok.id });
     renderAll();
     return;
   }
 
   if (kind === 'conncounter'){
     const c = conn(id);
-    if (c) c.counters.push(newCounter('проходів'));
+    if (c) c.counters.push(newCounter(t('data.crossings')));
   } else if (s){
     if (kind === 'danger') s.dangers.push(newDanger());
     if (kind === 'block') s.blocks.push(newBlock());
@@ -236,8 +238,8 @@ function addItem(kind, id){
 /** `data-newtok="<type>"` — drops the token into the selected scene, if any. */
 function newToken(type){
   const at = sel && sel.kind === 'scene' ? { kind: 'scene', id: sel.id } : null;
-  const t = mkToken(type, null, at);
-  setSel({ kind: 'token', id: t.id });
+  const tok = mkToken(type, null, at);
+  setSel({ kind: 'token', id: tok.id });
   renderAll();
 }
 
@@ -250,14 +252,14 @@ function placeItem(spec){
 }
 
 function addRegistry(){
-  const r = { id: uid('g'), nm: 'Новий список', one: '', sym: '◆', color: '#6A9BD1', items: [] };
+  const r = { id: uid('g'), nm: t('list.newList'), one: '', sym: '◆', color: '#6A9BD1', items: [] };
   regs().push(r);
   setTab('reg-' + r.id);
   mark();
   renderAll();
 
   // Land in the name field with the placeholder selected, so the first
-  // keystroke names the list instead of appending to "Новий список".
+  // keystroke names the list instead of appending to the placeholder.
   const name = document.querySelector(`#p-reg-${CSS.escape(r.id)} input[data-path$=":nm"]`);
   if (name){
     name.focus();
@@ -267,7 +269,7 @@ function addRegistry(){
 
 function delRegistry(regId){
   const r = reg(regId);
-  if (!r || !confirm(`Видалити список «${r.nm}» разом із прив'язками?`)) return;
+  if (!r || !confirm(t('msg.confirmDeleteList', { name: r.nm }))) return;
   S.scenes.forEach(s => {
     locs(s).forEach(l => { if (l.reg) delete l.reg[regId]; });
     s.locations = locs(s).filter(l => !locEmpty(l));
@@ -281,7 +283,7 @@ function delRegistry(regId){
 function addRegistryItem(regId){
   const r = reg(regId);
   if (!r) return;
-  r.items.push({ id: uid('i'), nm: 'Новий елемент', sym: '', note: '' });
+  r.items.push({ id: uid('i'), nm: t('list.newItem'), sym: '', note: '' });
   mark();
   renderAll();
 }

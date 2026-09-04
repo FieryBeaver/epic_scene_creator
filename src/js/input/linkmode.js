@@ -4,6 +4,8 @@
  * all switch it on.
  */
 
+import { t } from '../i18n/index.js';
+
 import { mode, scene } from '../core/state.js';
 import { el } from '../util/dom.js';
 
@@ -24,8 +26,8 @@ export function startLink(fromId){
   const from = fromId && scene(fromId);
   const bar = el('modeBar');
   bar.textContent = from
-    ? `Оберіть другу сцену для з'єднання з «${from.name}». Esc — скасувати.`
-    : `Оберіть сцену-джерело, потім сцену-ціль. Esc — скасувати.`;
+    ? t('msg.linkPickSecond', { name: from.name })
+    : t('msg.linkPickFirst');
   bar.classList.add('on');
   el('boardWrap').classList.add('linking');
   el('bLink').classList.add('on');

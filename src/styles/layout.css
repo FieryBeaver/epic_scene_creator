@@ -61,6 +61,12 @@ body.view .btitle{color:var(--ochre);pointer-events:none}
 .menu kbd{margin-left:auto;font:inherit;font-size:11px;color:var(--dim);
   border:1px solid var(--line);border-radius:3px;padding:0 4px}
 .msep{height:1px;background:var(--line);margin:4px 2px}
+.langrow{display:flex;align-items:center;gap:8px;padding:5px 9px;font-size:13px;color:var(--dim)}
+.langs{display:flex;gap:2px;margin-left:auto}
+.lang{background:none;border:1px solid transparent;border-radius:4px;
+  padding:2px 8px;color:var(--dim);font-size:12px}
+.lang:hover{background:#ffffff0d;color:var(--bone)}
+.lang.on{background:#20463A;border-color:#2F6E58;color:#BFF0DE}
 
 /* ---------- columns ---------- */
 #main{display:grid;grid-template-columns:var(--railW,288px) 6px 1fr 6px var(--inspW,340px);min-height:0}

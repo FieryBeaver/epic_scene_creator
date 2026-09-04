@@ -8,19 +8,20 @@
  */
 
 import { esc } from '../util/html.js';
+import { t } from '../i18n/index.js';
 import { el, toast } from '../util/dom.js';
 import { loadConfig, saveConfig, clearConfig, isConfigured, shareLink, deviceId }
   from '../core/sync/config.js';
 import { GitHubFile } from '../core/sync/github.js';
 
 const PHASE = {
-  off:        { cls: 'off',  text: 'Синхронізація вимкнена' },
-  connecting: { cls: 'busy', text: 'Під\'єднання…' },
-  syncing:    { cls: 'busy', text: 'Синхронізація…' },
-  merging:    { cls: 'busy', text: 'Злиття змін…' },
-  synced:     { cls: 'ok',   text: 'Синхронізовано' },
-  offline:    { cls: 'bad',  text: 'Немає мережі' },
-  error:      { cls: 'bad',  text: 'Помилка' },
+  off:        { cls: 'off',  key: 'sync.off' },
+  connecting: { cls: 'busy', key: 'sync.connecting' },
+  syncing:    { cls: 'busy', key: 'sync.syncing' },
+  merging:    { cls: 'busy', key: 'sync.merging' },
+  synced:     { cls: 'ok',   key: 'sync.synced' },
+  offline:    { cls: 'bad',  key: 'sync.offline' },
+  error:      { cls: 'bad',  key: 'sync.error' },
 };
 
 let engine = null;
@@ -45,14 +46,14 @@ export function renderStatus(state){
   const p = PHASE[state.phase] || PHASE.off;
   pill.className = p.cls;
 
-  let text = p.text;
+  let text = t(p.key);
   if (state.phase === 'synced' && state.at){
-    text = 'Синхронізовано ' + clock(state.at);
+    text = t('sync.syncedAt', { time: clock(state.at) });
   }
   pill.innerHTML = `<i class="dot"></i>${esc(text)}`;
   pill.title = state.error
     ? state.error
-    : (state.rate != null ? `Залишок запитів до GitHub: ${state.rate}` : text);
+    : (state.rate != null ? t('sync.rate', { n: state.rate }) : text);
 }
 
 function clock(ts){
@@ -80,53 +81,47 @@ function sheet(cfg){
   const connected = isConfigured(cfg) && cfg.enabled;
   return `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="syncTitle">
     <header>
-      <h2 id="syncTitle">Спільна дошка</h2>
+      <h2 id="syncTitle">${esc(t('sync.title'))}</h2>
       <button class="btn sm" data-sync-close>✕</button>
     </header>
     <div class="body">
-      <p class="hint">Дошка зберігається як JSON-файл у приватному репозиторії GitHub.
-        Кожен ДМ під'єднує свій токен зі свого пристрою; кожне збереження — це коміт,
-        тож видно історію і хто що змінив.</p>
+      <p class="hint">${esc(t('sync.intro'))}</p>
 
       <div class="grid2">
-        <label class="f"><span>Власник (owner)</span>
+        <label class="f"><span>${esc(t('sync.owner'))}</span>
           <input type="text" id="syncOwner" placeholder="FieryBeaver" value="${esc(cfg.owner)}"></label>
-        <label class="f"><span>Репозиторій</span>
+        <label class="f"><span>${esc(t('sync.repo'))}</span>
           <input type="text" id="syncRepo" placeholder="epic-boards" value="${esc(cfg.repo)}"></label>
       </div>
       <div class="grid2">
-        <label class="f"><span>Файл</span>
+        <label class="f"><span>${esc(t('sync.path'))}</span>
           <input type="text" id="syncPath" placeholder="board.json" value="${esc(cfg.path)}"></label>
-        <label class="f"><span>Гілка (порожньо — типова)</span>
+        <label class="f"><span>${esc(t('sync.branch'))}</span>
           <input type="text" id="syncBranch" placeholder="main" value="${esc(cfg.branch)}"></label>
       </div>
 
-      <label class="f"><span>Персональний токен</span>
+      <label class="f"><span>${esc(t('sync.token'))}</span>
         <input type="password" id="syncToken" autocomplete="off" spellcheck="false"
           placeholder="github_pat_…" value="${esc(cfg.token)}"></label>
 
-      <p class="note"><b>Про токен.</b> Він зберігається лише в цьому браузері
-        (localStorage) і ніколи не потрапляє у файл дошки чи в експорт. Створіть
-        <i>fine-grained</i> токен із доступом <b>Contents: Read and write</b> лише до
-        цього репозиторію. На чужому чи спільному комп'ютері не зберігайте його —
-        натисніть «Забути на цьому пристрої», коли закінчите.</p>
+      <p class="note">${t('sync.tokenNote')}</p>
 
       <div class="row">
-        <button class="btn" id="syncTest">Перевірити доступ</button>
-        <button class="btn acc" id="syncConnect">${connected ? 'Перепід\'єднати' : 'Під\'єднати'}</button>
-        <button class="btn" id="syncNow" ${connected ? '' : 'disabled'}>Синхронізувати зараз</button>
+        <button class="btn" id="syncTest">${esc(t('sync.test'))}</button>
+        <button class="btn acc" id="syncConnect">${esc(connected ? t('sync.reconnect') : t('sync.connect'))}</button>
+        <button class="btn" id="syncNow" ${connected ? '' : 'disabled'}>${esc(t('sync.syncNow'))}</button>
         <span class="status" id="syncMsg"></span>
       </div>
 
       ${cfg.owner && cfg.repo ? `<div class="sep"></div>
-        <label class="f"><span>Посилання для інших ДМ (без токена)</span>
+        <label class="f"><span>${esc(t('sync.shareLabel'))}</span>
           <input type="text" id="syncShare" readonly value="${esc(shareLink(cfg))}"></label>
-        <button class="btn sm" id="syncCopy">Скопіювати посилання</button>` : ''}
+        <button class="btn sm" id="syncCopy">${esc(t('sync.copyLink'))}</button>` : ''}
 
       <div class="sep"></div>
       <div class="row">
-        <button class="btn warn" id="syncForget">Забути на цьому пристрої</button>
-        <span class="hint" style="margin:0">Цей пристрій: <code>${esc(deviceId())}</code></span>
+        <button class="btn warn" id="syncForget">${esc(t('sync.forget'))}</button>
+        <span class="hint" style="margin:0">${esc(t('sync.thisDevice'))} <code>${esc(deviceId())}</code></span>
       </div>
     </div>
   </div>`;
@@ -154,14 +149,14 @@ function wire(){
 
   el('syncTest').onclick = async () => {
     const cfg = fields();
-    if (!isConfigured(cfg)) return say('Заповніть усі поля', 'bad');
-    say('Перевіряю…');
+    if (!isConfigured(cfg)) return say(t('sync.fillAll'), 'bad');
+    say(t('sync.checking'));
     try {
       const info = await new GitHubFile(cfg).probe();
       const canWrite = info.permissions.push || info.permissions.admin || info.permissions.maintain;
       say(canWrite
-        ? `Доступ є${info.private ? ' · репозиторій приватний' : ' · УВАГА: репозиторій публічний'}`
-        : 'Токен бачить репозиторій, але не має права запису', canWrite ? 'ok' : 'bad');
+        ? t(info.private ? 'sync.accessOkPrivate' : 'sync.accessOkPublic')
+        : t('sync.noWrite'), canWrite ? 'ok' : 'bad');
     } catch (err){
       say(readable(err), 'bad');
     }
@@ -169,13 +164,13 @@ function wire(){
 
   el('syncConnect').onclick = async () => {
     const cfg = fields();
-    if (!isConfigured(cfg)) return say('Заповніть усі поля', 'bad');
+    if (!isConfigured(cfg)) return say(t('sync.fillAll'), 'bad');
     saveConfig(Object.assign({}, cfg, { enabled: true }));
-    say('Під\'єднуюсь…');
+    say(t('sync.connectingMsg'));
     try {
       await engine.start(cfg);
-      say('Готово', 'ok');
-      toast('Спільну дошку під\'єднано');
+      say(t('sync.done'), 'ok');
+      toast(t('msg.syncConnected'));
       close();
     } catch (err){
       say(readable(err), 'bad');
@@ -183,34 +178,34 @@ function wire(){
   };
 
   el('syncNow').onclick = async () => {
-    say('Синхронізую…');
+    say(t('sync.syncingMsg'));
     await engine.syncNow();
-    say(engine.state.error || 'Готово', engine.state.error ? 'bad' : 'ok');
+    say(engine.state.error || t('sync.done'), engine.state.error ? 'bad' : 'ok');
   };
 
   const copy = el('syncCopy');
   if (copy) copy.onclick = async () => {
     const input = el('syncShare');
     input.select();
-    try { await navigator.clipboard.writeText(input.value); toast('Посилання скопійовано'); }
-    catch { toast('Скопіюйте вручну'); }
+    try { await navigator.clipboard.writeText(input.value); toast(t('msg.copyLink')); }
+    catch { toast(t('msg.copyManually')); }
   };
 
   el('syncForget').onclick = () => {
-    if (!confirm('Забути налаштування й токен на цьому пристрої?')) return;
+    if (!confirm(t('msg.confirmForget'))) return;
     engine.stop();
     clearConfig();
     close();
-    toast('Налаштування синхронізації видалено');
+    toast(t('msg.syncForgotten'));
   };
 }
 
 /** GitHub's own wording is terse; give the common failures a plain sentence. */
 function readable(err){
   const status = err && err.status;
-  if (status === 401) return 'Токен недійсний або протермінований';
-  if (status === 403) return 'Токен не має доступу до цього репозиторію';
-  if (status === 404) return 'Репозиторій або файл не знайдено (перевірте owner/repo та права токена)';
-  if (status === 409 || status === 422) return 'Хтось зберіг раніше — спробуйте ще раз';
+  if (status === 401) return t('sync.errTokenBad');
+  if (status === 403) return t('sync.errNoAccess');
+  if (status === 404) return t('sync.errNotFound');
+  if (status === 409 || status === 422) return t('sync.errConflict');
   return String(err && err.message || err);
 }

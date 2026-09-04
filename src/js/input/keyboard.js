@@ -3,6 +3,8 @@
  * Escape, which cancels link mode or clears the selection.
  */
 
+import { t } from '../i18n/index.js';
+
 import { sel, mode, marked, setMarked, mark, scene } from '../core/state.js';
 import { delScene, delConn, duplicateScene } from '../core/model.js';
 import { isTyping } from '../util/dom.js';
@@ -113,7 +115,7 @@ function deleteSelection(){
   const ids = targets();
 
   if (ids.length > 1){
-    if (!confirm(`Видалити сцен: ${ids.length}? Разом з їхніми з'єднаннями.`)) return;
+    if (!confirm(t('msg.confirmDeleteScenes', { n: ids.length }))) return;
     ids.forEach(delScene);
     setMarked([]);
     renderAll();
@@ -122,7 +124,7 @@ function deleteSelection(){
 
   if (!sel) return;
   if (sel.kind === 'scene'){
-    if (confirm('Видалити сцену?')){ delScene(sel.id); setMarked([]); renderAll(); }
+    if (confirm(t('msg.confirmDeleteSceneShort'))){ delScene(sel.id); setMarked([]); renderAll(); }
   } else if (sel.kind === 'conn'){
     delConn(sel.id);
     renderAll();

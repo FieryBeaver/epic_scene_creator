@@ -3,6 +3,8 @@
  * demo layout and clear. Also owns the unsaved-changes guard.
  */
 
+import { t } from '../i18n/index.js';
+
 import { S, sel, mode, setBoard, setModeValue, setSel, blank, clearDirty, dirty } from '../core/state.js';
 import { serialize, deserialize, exportFilename } from '../core/serialize.js';
 import { el, toast } from '../util/dom.js';
@@ -63,7 +65,7 @@ export function refreshTitle(){
 
 function syncDocumentTitle(){
   const name = (el('boardTitle').value || '').trim();
-  document.title = name ? `${name} — Дошка сцен` : 'Дошка сцен';
+  document.title = name ? `${name} — ${t('app.name')}` : t('app.name');
 }
 
 /* ---------- overflow menu ---------- */
@@ -113,7 +115,7 @@ function selectedSceneId(){
 export function setMode(next){
   setModeValue(next);
   document.body.classList.toggle('view', next === 'view');
-  el('bMode').textContent = next === 'view' ? '✎ Редагування' : '👁 Перегляд';
+  el('bMode').textContent = next === 'view' ? t('top.edit') : t('top.view');
   if (next === 'view') stopLink();
   renderAll();
 }
@@ -138,7 +140,7 @@ function exportBoard(){
   clearDirty();
   renderDirty();          // clearDirty() is not a change, so nothing else redraws it
   writeNow(cam);
-  toast('JSON збережено');
+  toast(t('msg.saved'));
 }
 
 function importBoard(ev){
@@ -149,10 +151,10 @@ function importBoard(ev){
     try {
       const raw = JSON.parse(reader.result);
       installBoard(deserialize(raw), raw.camera);
-      toast(`Завантажено: ${S.scenes.length} сцен, ${S.connections.length} з'єднань, `
-        + `${S.tokens.length} токенів`);
+      toast(t('msg.loaded', { scenes: S.scenes.length, conns: S.connections.length,
+                              tokens: S.tokens.length }));
     } catch (err){
-      alert('Не вдалося прочитати файл: ' + err.message);
+      alert(t('msg.readFailed', { error: err.message }));
     }
     ev.target.value = '';
   };
@@ -174,16 +176,16 @@ function installBoard(board, camera){
 /* ---------- demo / clear ---------- */
 
 function loadDemo(){
-  if (S.scenes.length && !confirm('Замінити поточну дошку демо-розкладкою?')) return;
+  if (S.scenes.length && !confirm(t('msg.replaceWithDemo'))) return;
   buildDemoBoard();
   refreshTitle();
   renderAll();
   fitAll();
-  toast('Демо: 12 сцен, дев\'ять гробниць і п\'ять ключів розставлені');
+  toast(t('msg.demoLoaded'));
 }
 
 function clearBoard(){
-  if (!confirm('Очистити дошку? Незбережені дані буде втрачено.')) return;
+  if (!confirm(t('msg.confirmClear'))) return;
   clearAutosave();
   setBoard(blank());
   setSel(null);

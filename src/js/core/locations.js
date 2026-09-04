@@ -6,6 +6,8 @@
  * hold the tomb of a god, a skeleton key, or whatever list the DM invented.
  */
 
+import { t } from '../i18n/index.js';
+
 import { uid, byId, regs } from './state.js';
 
 /** Rooms of a scene, created lazily. */
@@ -57,8 +59,8 @@ export function locName(l){
   if (l.nm) return l.nm;
   const sl = slotList(l);
   if (sl.length) return ((sl[0].r.one || sl[0].r.nm) + ' ' + sl[0].it.nm).trim();
-  if (l.hasTre) return 'Кімната зі скарбом';
-  return 'Кімната';
+  if (l.hasTre) return t('room.treasureRoom');
+  return t('room.generic');
 }
 
 /** Glyphs for the room: one per registry item, plus ◈ when it holds treasure. */

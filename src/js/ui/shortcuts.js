@@ -6,35 +6,41 @@
  * nobody has to already know the shortcut for the shortcut list.
  */
 
+import { t } from '../i18n/index.js';
+
 import { esc } from '../util/html.js';
 import { el } from '../util/dom.js';
 
+/** Key label, then the key of the sentence describing it. */
 const GROUPS = [
-  ['Дошка', [
-    ['Колесо', 'Зум до курсора'],
-    ['Тягнути фон', 'Панорама'],
-    ['Shift + тягнути', 'Рамка виділення'],
-    ['Shift / Ctrl + клік', 'Додати сцену до виділення'],
-    ['f', 'Вмістити все'],
-    ['m', 'Мінікарта'],
-    ['v', 'Режим перегляду / редагування'],
+  ['keys.gBoard', [
+    ['keys.wheel', 'keys.wheelWhat'],
+    ['keys.dragBg', 'keys.dragBgWhat'],
+    ['keys.shiftDrag', 'keys.shiftDragWhat'],
+    ['keys.shiftClick', 'keys.shiftClickWhat'],
+    ['f', 'keys.fWhat'],
+    ['m', 'keys.mWhat'],
+    ['v', 'keys.vWhat'],
   ]],
-  ['Сцени', [
-    ['n', 'Нова сцена в центрі'],
-    ['Подвійний клік', 'Нова сцена в цьому місці'],
-    ['Тягнути заголовок', 'Пересунути (виділені — разом)'],
-    ['Стрілки', 'Посунути на крок сітки'],
-    ['Shift + стрілки', 'Посунути на п’ять кроків'],
-    ['Ctrl + D', 'Дублювати виділені'],
-    ['c', 'Згорнути / розгорнути картку'],
-    ['Delete', 'Видалити виділене'],
+  ['keys.gScenes', [
+    ['n', 'keys.nWhat'],
+    ['keys.dblclick', 'keys.dblclickWhat'],
+    ['keys.dragHead', 'keys.dragHeadWhat'],
+    ['keys.arrows', 'keys.arrowsWhat'],
+    ['keys.shiftArrows', 'keys.shiftArrowsWhat'],
+    ['keys.ctrlD', 'keys.ctrlDWhat'],
+    ['c', 'keys.cWhat'],
+    ['Delete', 'keys.delWhat'],
   ]],
-  ['Інше', [
-    ['Esc', 'Скасувати з’єднання, зняти виділення'],
-    ['?', 'Ця довідка'],
-    ['Подвійний клік по межі панелі', 'Згорнути панель'],
+  ['keys.gOther', [
+    ['Esc', 'keys.escWhat'],
+    ['?', 'keys.helpWhat'],
+    ['keys.gutter', 'keys.gutterWhat'],
   ]],
 ];
+
+/** Literal keys stay as they are; anything namespaced is looked up. */
+const label = v => (v.includes('.') ? t(v) : v);
 
 export function initShortcuts(){
   const box = el('helpModal');
@@ -50,14 +56,14 @@ export function showShortcuts(){
   const box = el('helpModal');
   box.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <header>
-      <h2 id="helpTitle">Гарячі клавіші</h2>
+      <h2 id="helpTitle">${esc(t('keys.title'))}</h2>
       <button class="btn sm" data-help-close>✕</button>
     </header>
     <div class="body">
       ${GROUPS.map(([title, rows]) => `<div class="keys">
-        <h4>${esc(title)}</h4>
+        <h4>${esc(t(title))}</h4>
         ${rows.map(([k, what]) =>
-          `<div class="krow"><kbd>${esc(k)}</kbd><span>${esc(what)}</span></div>`).join('')}
+          `<div class="krow"><kbd>${esc(label(k))}</kbd><span>${esc(t(what))}</span></div>`).join('')}
       </div>`).join('')}
     </div>
   </div>`;

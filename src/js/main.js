@@ -8,6 +8,8 @@
  *   input/  everything that reacts to a person: pointer, keys, forms, toolbar
  */
 
+import { t } from './i18n/index.js';
+
 import { S, onChange, setBoard, clearDirty } from './core/state.js';
 import { scheduleAutosave, readAutosave } from './core/autosave.js';
 import { SyncEngine } from './core/sync/engine.js';
@@ -17,6 +19,7 @@ import { applyPanels, initPanels } from './ui/panels.js';
 import { renderAll, renderPreservingFocus } from './ui/render.js';
 import { initSyncPanel, renderStatus } from './ui/sync-panel.js';
 import { initMinimap } from './ui/minimap.js';
+import { initLanguage } from './ui/language.js';
 import { initSelBar } from './ui/selbar.js';
 import { initShortcuts } from './ui/shortcuts.js';
 import { toast } from './util/dom.js';
@@ -24,10 +27,10 @@ import { initActions } from './input/actions.js';
 import { initForms } from './input/forms.js';
 import { initKeyboard } from './input/keyboard.js';
 import { initPointer } from './input/pointer.js';
-import { initToolbar } from './input/toolbar.js';
+import { initToolbar, refreshTitle } from './input/toolbar.js';
 import { stopLink } from './input/linkmode.js';
 
-/** Shared with the toolbar so "Очистити" can stop the loop and drop the cache. */
+/** Shared with the toolbar so clearing the board can stop the loop. */
 export const sync = new SyncEngine({
   getBoard: () => S,
   onRemote: onRemoteChanges,
@@ -39,13 +42,13 @@ function onRemoteChanges(ids, overridden){
   if (overridden && overridden.length){
     // Worth saying out loud: this DM's edit to that scene did not survive.
     toast(overridden.length === 1
-      ? 'Вашу зміну перезаписано змінами з іншого пристрою'
-      : `Ваших змін перезаписано: ${overridden.length}`);
+      ? t('msg.overriddenOne')
+      : t('msg.overriddenMany', { n: overridden.length }));
     return;
   }
   toast(ids.length === 1
-    ? 'Оновлення з іншого пристрою'
-    : `Оновлень з інших пристроїв: ${ids.length}`);
+    ? t('msg.remoteOne')
+    : t('msg.remoteMany', { n: ids.length }));
 }
 
 /** Bring back whatever this browser had open, so a closed tab costs nothing. */
@@ -59,8 +62,8 @@ function restoreAutosave(){
   if (saved.camera) setCamera(saved.camera); else fitAll();
   if (saved.savedAt){
     const at = new Date(saved.savedAt);
-    toast(`Відновлено дошку від ${String(at.getHours()).padStart(2, '0')}:`
-      + `${String(at.getMinutes()).padStart(2, '0')}`);
+    const time = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+    toast(t('msg.restored', { time }));
   }
   return true;
 }
@@ -77,6 +80,14 @@ function start(){
   initSyncPanel(sync);
   initSelBar();
   initShortcuts();
+
+  // Everything drawn from JavaScript re-reads the language on its next render,
+  // so a switch is just "fill the static markup again, then redraw".
+  initLanguage(() => {
+    refreshTitle();
+    renderAll();
+    renderStatus(sync.state);
+  });
 
   stopLink();
   applyPanels();

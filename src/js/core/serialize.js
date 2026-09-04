@@ -10,6 +10,8 @@
  * hand-editable and arrives from disk as untrusted input.
  */
 
+import { t } from '../i18n/index.js';
+
 import { BOARD_APP, BOARD_VERSION } from './state.js';
 import { defaultRegistries } from './constants.js';
 import { readSync } from './sync/protocol.js';
@@ -58,7 +60,7 @@ const LEGACY_BLOCK_KINDS = {
  */
 export function deserialize(raw){
   if (!raw || typeof raw !== 'object' || !Array.isArray(raw.scenes)){
-    throw new Error('це не файл дошки (немає масиву scenes)');
+    throw new Error(t('msg.notABoard'));
   }
 
   // Local id factory: never touches the live board's counter.
@@ -68,7 +70,7 @@ export function deserialize(raw){
   const board = {
     app: BOARD_APP,
     version: BOARD_VERSION,
-    title: str(raw.title, 'Нова дошка'),
+    title: str(raw.title, t('app.newBoard')),
     scenes: [],
     connections: [],
     tokens: [],
@@ -106,7 +108,7 @@ function readRegistries(list, uid){
   if (!Array.isArray(list) || !list.length) return defaultRegistries();
   return list.map(r => ({
     id: str(r.id) || uid('g'),
-    nm: str(r.nm, 'Список'),
+    nm: str(r.nm, t('list.generic')),
     one: str(r.one),
     sym: str(r.sym, '◆'),
     color: str(r.color, '#C7D6E0'),
@@ -123,7 +125,7 @@ function readRegistries(list, uid){
 function readScene(s, uid){
   return {
     id: str(s.id) || uid('s'),
-    name: str(s.name, 'Сцена'),
+    name: str(s.name, t('data.scene')),
     dm: str(s.dm),
     color: str(s.color, '#54685C'),
     x: int(s.x), y: int(s.y),
@@ -153,7 +155,7 @@ function readScene(s, uid){
 
     events: (s.events || []).map(x => ({
       id: str(x.id) || uid('e'),
-      nm: str(x.nm, 'Івент'), trig: str(x.trig), eff: str(x.eff),
+      nm: str(x.nm, t('data.event')), trig: str(x.trig), eff: str(x.eff),
       conn: str(x.conn),
       act: x.act === 'close' ? 'close' : 'open',
       fired: !!x.fired,
@@ -163,7 +165,7 @@ function readScene(s, uid){
 
     counters: (s.counters || []).map(x => ({
       id: str(x.id) || uid('n'),
-      label: str(x.label, 'лічильник'),
+      label: str(x.label, t('data.counter')),
       value: int(x.value),
     })),
   };
@@ -180,10 +182,10 @@ function readLocations(s, uid){
     ...(s.keys || []).map(k => ({ kind: 'key', ref: k })),
   ];
 
-  const legacyTreasures = (s.treasures || []).map(t => ({
-    kind: 'treasure', nm: str(t.nm, 'Скарб'), notes: '',
-    tre: str(t.what), guard: str(t.guard), taken: !!t.done,
-    _oldId: str(t.id), _oldBlock: str(t.block),
+  const legacyTreasures = (s.treasures || []).map(tr => ({
+    kind: 'treasure', nm: str(tr.nm, t('data.treasure')), notes: '',
+    tre: str(tr.what), guard: str(tr.guard), taken: !!tr.done,
+    _oldId: str(tr.id), _oldBlock: str(tr.block),
   }));
 
   return [...source, ...legacyTreasures].map(l => {
@@ -304,7 +306,7 @@ function readConn(c, uid){
   return {
     id: str(c.id) || uid('c'),
     from: str(c.from), to: str(c.to),
-    name: str(c.name, "З'єднання"),
+    name: str(c.name, t('data.connection')),
     dir: c.dir === 'one' ? 'one' : 'two',
     fromSide: str(c.fromSide), toSide: str(c.toSide),
     desc: str(c.desc),
@@ -312,20 +314,20 @@ function readConn(c, uid){
     open: c.open !== false,
     counters: (c.counters || []).map(x => ({
       id: str(x.id) || uid('n'),
-      label: str(x.label, 'проходів'),
+      label: str(x.label, t('data.crossings')),
       value: int(x.value),
     })),
   };
 }
 
-function readToken(t, uid){
+function readToken(tk, uid){
   return {
-    id: str(t.id) || uid('t'),
-    name: str(t.name, 'Токен'),
-    type: str(t.type, 'other'),
-    color: str(t.color),
-    hp: str(t.hp),
-    notes: str(t.notes),
-    at: t.at && t.at.id ? { kind: t.at.kind === 'conn' ? 'conn' : 'scene', id: str(t.at.id) } : null,
+    id: str(tk.id) || uid('t'),
+    name: str(tk.name, t('data.token')),
+    type: str(tk.type, 'other'),
+    color: str(tk.color),
+    hp: str(tk.hp),
+    notes: str(tk.notes),
+    at: tk.at && tk.at.id ? { kind: tk.at.kind === 'conn' ? 'conn' : 'scene', id: str(tk.at.id) } : null,
   };
 }

@@ -4,6 +4,8 @@
  * as untrusted input.
  */
 
+import { t } from '../i18n/index.js';
+
 const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 
 /** Escape a value for interpolation into markup or a quoted attribute. */
@@ -41,5 +43,5 @@ export function safeUrl(u){
 export function linkLabel(k){
   if (k.label) return k.label;
   try { return new URL(safeUrl(k.url)).hostname.replace(/^www\./, ''); }
-  catch { return k.url || 'посилання'; }
+  catch { return k.url || t('data.link'); }
 }

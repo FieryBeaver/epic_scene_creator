@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Дошка сцен</title>
-<meta name="description" content="Дошка сцен для кампанії на кілька столів: сцени, переходи, небезпеки, блоки, івенти й токени на одній мапі.">
+<title>Scene Board</title>
+<meta name="description" content="A scene board for a multi-table campaign: scenes, passages, dangers, blocks, events and tokens on one map. Дошка сцен для кампанії на кілька столів.">
 <!-- Two scenes and a passage, drawn inline so the standalone file stays self-contained. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%2318201C%27/%3E%3Cpath d=%27M10 11L22 21%27 stroke=%27%2354685C%27 stroke-width=%272.5%27/%3E%3Ccircle cx=%2710%27 cy=%2711%27 r=%274.5%27 fill=%27%2354BE9B%27/%3E%3Ccircle cx=%2722%27 cy=%2721%27 r=%274.5%27 fill=%27%23D08A34%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,44 +19,50 @@
 <body>
 <div id="app">
   <header id="top">
-    <div class="brand" title="Дошка сцен">
+    <div class="brand" data-i18n-attr="title:app.name">
       <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
         <path d="M10 11L22 21" stroke="#54685C" stroke-width="2.5"/>
         <circle cx="10" cy="11" r="4.5" fill="#54BE9B"/>
         <circle cx="22" cy="21" r="4.5" fill="#D08A34"/>
       </svg>
-      <span class="app">Дошка сцен</span>
+      <span class="app" data-i18n="app.name"></span>
     </div>
 
-    <input id="boardTitle" class="btitle" data-path="b:title"
-      placeholder="Назва дошки" aria-label="Назва дошки" spellcheck="false">
+    <input id="boardTitle" class="btitle" data-path="b:title" spellcheck="false"
+      data-i18n-attr="placeholder:app.boardTitle,aria-label:app.boardTitle">
 
     <div class="spacer"></div>
 
     <div class="tgroup eonly">
-      <button class="btn" id="bAddScene" title="Нова сцена (n)">+ Сцена</button>
-      <button class="btn" id="bLink" title="З'єднати дві сцени">🔗 З'єднати</button>
+      <button class="btn" id="bAddScene" data-i18n="top.addScene" data-i18n-attr="title:top.addSceneTip"></button>
+      <button class="btn" id="bLink" data-i18n="top.link" data-i18n-attr="title:top.linkTip"></button>
     </div>
 
     <div class="tgroup">
-      <button class="btn" id="bFit" title="Вмістити все (f)">Вмістити</button>
-      <button class="btn" id="bMode" title="Перемкнути режим (v)">👁 Перегляд</button>
+      <button class="btn" id="bFit" data-i18n="top.fit" data-i18n-attr="title:top.fitTip"></button>
+      <button class="btn" id="bMode" data-i18n="top.view" data-i18n-attr="title:top.modeTip"></button>
     </div>
 
-    <button id="bSync" aria-live="polite" title="Спільна дошка"></button>
+    <button id="bSync" aria-live="polite" data-i18n-attr="title:top.syncTip"></button>
 
     <div class="tgroup">
-      <button class="btn acc" id="bExport" title="Зберегти у файл">Експорт<i class="dirty" hidden></i></button>
+      <button class="btn acc" id="bExport" data-i18n-attr="title:top.exportTip"><span data-i18n="top.export"></span><i class="dirty" hidden></i></button>
       <button class="btn" id="bMore" aria-haspopup="menu" aria-expanded="false"
-        title="Ще">⋯</button>
+        data-i18n-attr="title:top.more">⋯</button>
     </div>
 
     <div id="moreMenu" class="menu" hidden role="menu">
-      <button role="menuitem" data-more="import">Імпорт JSON…</button>
-      <button role="menuitem" data-more="help">Гарячі клавіші <kbd>?</kbd></button>
+      <button role="menuitem" data-more="import" data-i18n="menu.import"></button>
+      <button role="menuitem" data-more="help"><span data-i18n="menu.help"></span><kbd>?</kbd></button>
       <div class="msep eonly"></div>
-      <button role="menuitem" class="eonly" data-more="demo">Демо-розкладка</button>
-      <button role="menuitem" class="eonly warn" data-more="clear">Очистити дошку</button>
+      <div class="msep"></div>
+      <div class="langrow" role="group" data-i18n-attr="aria-label:menu.language">
+        <span data-i18n="menu.language"></span>
+        <span class="langs" id="langChoice"></span>
+      </div>
+      <div class="msep eonly"></div>
+      <button role="menuitem" class="eonly" data-more="demo" data-i18n="menu.demo"></button>
+      <button role="menuitem" class="eonly warn" data-more="clear" data-i18n="menu.clear"></button>
     </div>
 
     <input type="file" id="fileIn" accept=".json,application/json" hidden>
@@ -67,7 +73,7 @@
       <nav id="tabs">
         <div id="tabStrip"></div>
         <button class="plus eonly" data-addreg
-          aria-label="Новий список локацій" title="Новий список локацій">＋</button>
+          data-i18n-attr="aria-label:rail.newList,title:rail.newList">＋</button>
       </nav>
       <div id="panes">
         <section class="pane on" id="p-scenes"></section>
@@ -75,7 +81,7 @@
       </div>
     </aside>
 
-    <div class="gut" id="gutL" title="Тягніть, щоб змінити ширину. Подвійний клік — згорнути"></div>
+    <div class="gut" id="gutL" data-i18n-attr="title:keys.gutterWhat"></div>
 
     <div id="boardWrap">
       <canvas id="grid"></canvas>
@@ -89,13 +95,13 @@
         <span class="z" id="zLbl">100%</span>
         <button class="btn sm" id="zIn">+</button>
         <button class="btn sm" id="zRst">1:1</button>
-        <button class="btn sm" id="bMap" title="Мінікарта (m)">▭</button>
+        <button class="btn sm" id="bMap" data-i18n-attr="title:keys.mWhat">▭</button>
       </div>
       <div id="marquee" hidden></div>
       <div id="minimap"><canvas id="minimapCanvas"></canvas></div>
     </div>
 
-    <div class="gut" id="gutR" title="Тягніть, щоб змінити ширину. Подвійний клік — згорнути"></div>
+    <div class="gut" id="gutR" data-i18n-attr="title:keys.gutterWhat"></div>
 
     <aside id="insp"></aside>
   </div>

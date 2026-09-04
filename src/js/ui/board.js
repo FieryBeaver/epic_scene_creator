@@ -7,7 +7,8 @@
 import { S, sel, marked } from '../core/state.js';
 import { neighborsOf, owedBy, tokensAt } from '../core/model.js';
 import { locs, isTreasure, locName, locIcon, locColor, locDesc } from '../core/locations.js';
-import { TOKTYPE, dangerColor } from '../core/constants.js';
+import { tokenTypeColor, dangerColor } from '../core/constants.js';
+import { t } from '../i18n/index.js';
 import { esc, safeColor } from '../util/html.js';
 import { el } from '../util/dom.js';
 import { measureNodes } from './nodes.js';
@@ -52,10 +53,10 @@ function collapsedSummary(s){
   const rooms = locs(s).length;
   const toks = tokensAt('scene', s.id).length;
   return `<div class="fold-sum">`
-    + `<span title="Активні небезпеки">☠ ${dangers}</span>`
-    + `<span title="Нерозв'язані блоки">⛔ ${blocks}</span>`
-    + `<span title="Кімнати">▣ ${rooms}</span>`
-    + (toks ? `<span title="Токени">◉ ${toks}</span>` : '')
+    + `<span title="${esc(t('board.activeDangers'))}">☠ ${dangers}</span>`
+    + `<span title="${esc(t('board.openBlocks'))}">⛔ ${blocks}</span>`
+    + `<span title="${esc(t('board.rooms'))}">▣ ${rooms}</span>`
+    + (toks ? `<span title="${esc(t('board.tokens'))}">◉ ${toks}</span>` : '')
     + `</div>`;
 }
 
@@ -69,10 +70,10 @@ function nodeMarkup(s){
 
   let h = `<div class="head">`
     + `<button class="fold" data-fold="${esc(s.id)}"`
-    + ` title="${s.collapsed ? 'Розгорнути' : 'Згорнути'} (c)"`
+    + ` title="${esc(s.collapsed ? t('board.expand') : t('board.collapse'))} (c)"`
     + ` aria-expanded="${s.collapsed ? 'false' : 'true'}">${s.collapsed ? '▸' : '▾'}</button>`
     + `<div class="nm">${esc(s.name)}</div>`
-    + `<div class="dm">${s.dm ? 'ДМ: ' + esc(s.dm) : 'ДМ не вказано'}</div>`
+    + `<div class="dm">${s.dm ? esc(t('board.dm', { name: s.dm })) : esc(t('board.noDm'))}</div>`
     + `</div>`;
 
   // Collapsed: the header and the counts, nothing else. Enough to read the
@@ -85,20 +86,20 @@ function nodeMarkup(s){
   const dgStyle = worstDanger
     ? `border-color:${dangerColor(worstDanger)};color:${dangerColor(worstDanger)}` : '';
   h += `<div class="row">`
-    + `<span class="chip dg" title="Активні небезпеки" style="${dgStyle}">☠ ${activeDangers.length}</span>`
-    + `<span class="chip tr" title="Не забрані скарби">◈ ${unlooted.length}/${treasures.length}</span>`
-    + `<span class="chip bk" title="Нерозв'язані блоки">⛔ ${openBlocks.length}/${s.blocks.length}</span>`;
+    + `<span class="chip dg" title="${esc(t('board.activeDangers'))}" style="${dgStyle}">☠ ${activeDangers.length}</span>`
+    + `<span class="chip tr" title="${esc(t('board.unlooted'))}">◈ ${unlooted.length}/${treasures.length}</span>`
+    + `<span class="chip bk" title="${esc(t('board.openBlocks'))}">⛔ ${openBlocks.length}/${s.blocks.length}</span>`;
 
   const pending = (s.events || []).filter(e => !e.fired);
   if (pending.length){
-    h += `<span class="chip ev" title="Івенти, які ще не спрацювали: `
-      + `${esc(pending.map(e => e.nm).join('; '))}">⚡ ${pending.length}</span>`;
+    h += `<span class="chip ev" title="${esc(t('board.pendingEvents',
+      { list: pending.map(e => e.nm).join('; ') }))}">⚡ ${pending.length}</span>`;
   }
 
   const owed = owedBy(s.id);
   if (owed.length){
-    h += `<span class="chip owe" title="Тут лежать рішення для інших сцен: `
-      + `${esc(owed.map(o => o.from.name + ' → ' + o.it.nm).join('; '))}">↩ ${owed.length}</span>`;
+    h += `<span class="chip owe" title="${esc(t('board.owes',
+      { list: owed.map(o => o.from.name + ' → ' + o.it.nm).join('; ') }))}">↩ ${owed.length}</span>`;
   }
   h += `</div>`;
 
@@ -110,8 +111,8 @@ function nodeMarkup(s){
       // it without the DM having to open the scene.
       const answers = owed.filter(o => o.it.srcLoc === l.id);
       const tip = [
-        locDesc(l) || 'кімната',
-        ...answers.map(o => `↩ рішення для «${o.it.nm}» (${o.from.name})`),
+        locDesc(l) || t('board.roomFallback'),
+        ...answers.map(o => t('board.answerFor', { what: o.it.nm, scene: o.from.name })),
       ].join(' · ');
       return `<span class="chip clk" data-room="${esc(s.id)}:${esc(l.id)}"`
         + ` style="color:${col};border-color:${col}55;background:${col}14"`
@@ -131,16 +132,16 @@ function nodeMarkup(s){
 
   /* tokens standing here */
   if (toks.length){
-    h += `<div class="tokrow">` + toks.map(t => {
-      const col = safeColor(t.color || (TOKTYPE[t.type] || TOKTYPE.other).c);
-      const hp = t.hp != null && t.hp !== '' ? ' · ' + esc(t.hp) : '';
-      return `<span class="tok" data-token="${esc(t.id)}" style="--tc:${col}">`
-        + `<i class="dot"></i>${esc(t.name)}${hp}</span>`;
+    h += `<div class="tokrow">` + toks.map(tok => {
+      const col = safeColor(tok.color || tokenTypeColor(tok.type));
+      const hp = tok.hp != null && tok.hp !== '' ? ' · ' + esc(tok.hp) : '';
+      return `<span class="tok" data-token="${esc(tok.id)}" style="--tc:${col}">`
+        + `<i class="dot"></i>${esc(tok.name)}${hp}</span>`;
     }).join('') + `</div>`;
   }
 
   h += `</div><div class="foot eonly">`
-    + `<button class="mini" data-act="link" data-id="${esc(s.id)}">з'єднати</button>`
+    + `<button class="mini" data-act="link" data-id="${esc(s.id)}">${esc(t('board.connect'))}</button>`
     + `</div>`;
 
   return h;

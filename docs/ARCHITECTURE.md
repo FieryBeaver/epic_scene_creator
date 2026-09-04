@@ -40,6 +40,7 @@ real tests.
 | `serialize.js` | Reading and writing board files, including migration from pre-v3 layouts. Pure. |
 | `sync/` | The shared board: `protocol.js` (what travels and how it is versioned), `merge.js` (the merge rule, pure), `github.js` (Contents API client), `engine.js` (the loop), `config.js` (per-device settings). |
 | `autosave.js` | Debounced write of the board to `localStorage`, restored on load. |
+| `i18n/` | `index.js` (lookup, detection, the change hook) and one dictionary per language. |
 
 ### `ui/` — rendering
 
@@ -192,6 +193,35 @@ token — and all four go through `safeColor()`. Registry symbols (`item.sym`,
 that land in element content, so every call site wraps them in `esc()`;
 `locIcon()` itself returns raw text because `blockTargets()` feeds it into
 labels that are escaped once, further down.
+
+## Two languages
+
+The tool ships Ukrainian and English. Which one is used is a per-device
+choice, detected from the browser and overridable from the menu; it is never
+written into the board, because DMs sharing a board need not read the same
+language.
+
+The distinction that makes this work is **interface versus content**:
+
+- **Interface** — buttons, labels, hints, the shortcut sheet. Looked up on
+  every render, so switching is "fill the static markup again, then redraw",
+  and nothing else in the app has to know.
+- **Content** — the name a new scene gets, the text a template inserts, the
+  two default lists. Read once, at the moment of creation, and from then on
+  it is the DM's own text. Switching language must never rewrite it — a board
+  authored in Ukrainian keeps reading in Ukrainian when an English-speaking
+  DM opens it, which is exactly right for a shared board.
+
+Markup in `index.html` cannot re-read anything, so it declares `data-i18n`
+(text) and `data-i18n-attr` (`title:key,aria-label:key`) and `ui/language.js`
+fills it in.
+
+Three ways this could rot silently, all covered by `test/i18n.test.mjs`: the
+dictionaries drifting apart, a `t()` call naming a key nobody wrote, and a
+literal Ukrainian string left behind in a module. The last is checked by
+scanning every source file for Cyrillic outside `i18n/` — the one exception
+is `serialize.js`, where Ukrainian appears as *data*: values written by old
+board files that the migration still has to match.
 
 ## Syncing
 

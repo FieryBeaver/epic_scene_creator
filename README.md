@@ -14,7 +14,10 @@ the Nine Gods*, and are editable like any other list.
 · [Architecture](docs/ARCHITECTURE.md)
 · [Board file format](docs/DATA_FORMAT.md)
 
-The interface is in Ukrainian.
+The interface ships in **Ukrainian and English**, picked from the browser and
+switchable in the **⋯** menu. The choice is per device — a board is shared
+between DMs who need not read the same language, so it is not stored in the
+file.
 
 ---
 
@@ -37,6 +40,7 @@ those threads visible.
 | **Counters** | Waves, rounds, ally HP — on a scene or on a passage, bumped with +/− during play. |
 | **Tokens** | Parties, scouts, allies, bosses that broke through. Drag them between scenes and passages. |
 | **Registries** | Lists of unique things (the nine tombs, the five keys, anything you add). Each item lives in exactly one room, board-wide. |
+| **Two languages** | Ukrainian and English. Interface text follows the switch; anything already written stays as written. |
 | **View mode** | Read-only briefing for the table: every reference becomes a jump button. Counters and tokens still work. |
 | **Board handling** | Curved wires, a minimap, Shift-drag box selection, group move, duplicate, fold-to-header — the conventions from React Flow and Blender's node editors. |
 | **Shared board** | Several DMs, several devices, one dungeon — the board syncs through a JSON file in a private GitHub repo. Scenes merge individually, so two tables never overwrite each other. |
@@ -87,6 +91,7 @@ src/
   js/
     core/             the board and the rules about it — no DOM
       sync/           merge rule, GitHub client, the sync loop
+    i18n/             uk and en dictionaries, and the lookup
     util/             escaping, geometry, small DOM helpers
     ui/               rendering: board, edges, inspector, rail, camera
     input/            pointer, keyboard, forms, toolbar, demo layout

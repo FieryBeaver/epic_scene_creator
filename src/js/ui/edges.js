@@ -8,7 +8,8 @@
 
 import { S, sel, scene } from '../core/state.js';
 import { siblings, tokensAt } from '../core/model.js';
-import { TOKTYPE } from '../core/constants.js';
+import { tokenTypeColor } from '../core/constants.js';
+import { t } from '../i18n/index.js';
 import { esc, safeColor } from '../util/html.js';
 import { SIDE_VEC, SIDE_SYM, edgeAt, edgePoint, offsetSegment,
   leaveDirection, curveHandles, curvePath, curveMid } from '../util/geometry.js';
@@ -129,7 +130,8 @@ function renderEdgeLabels(world){
     let html = `<span class="chip clk elab" data-conn="${esc(c.id)}"`
       + ` style="border-color:${isSel ? '#D08A34' : '#3A4941'}">`
       + `${c.open === false ? '✕ ' : ''}${esc(c.name)}${sideMark(c)}`
-      + `${c.dir === 'one' ? ' →' : ' ↔'}${c.minutes ? ` · ${esc(c.minutes)}хв` : ''}</span>`;
+      + `${c.dir === 'one' ? ' →' : ' ↔'}`
+      + `${c.minutes ? ` · ${esc(c.minutes)}${esc(t('conn.min'))}` : ''}</span>`;
 
     if (c.counters.length){
       html += `<span class="erow">` + c.counters.map(k =>
@@ -140,10 +142,10 @@ function renderEdgeLabels(world){
     }
 
     if (toks.length){
-      html += `<span class="erow">` + toks.map(t => {
-        const col = safeColor(t.color || (TOKTYPE[t.type] || TOKTYPE.other).c);
-        return `<span class="tok" data-token="${esc(t.id)}" style="--tc:${col}">`
-          + `<i class="dot"></i>${esc(t.name)}</span>`;
+      html += `<span class="erow">` + toks.map(tok => {
+        const col = safeColor(tok.color || tokenTypeColor(tok.type));
+        return `<span class="tok" data-token="${esc(tok.id)}" style="--tc:${col}">`
+          + `<i class="dot"></i>${esc(tok.name)}</span>`;
       }).join('') + `</span>`;
     }
 

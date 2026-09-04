@@ -1,14 +1,12 @@
+import { t } from '../i18n/index.js';
+
 /**
  * Pure geometry for the board: which side of a node an edge leaves from and
  * where it meets the node's bounding box. No DOM, no state.
  */
 
 /** Compass sides a connection can be pinned to, plus the vertical pair. */
-export const SIDES = [
-  ['', 'авто'], ['N', 'північ'], ['NE', 'пн-схід'], ['E', 'схід'], ['SE', 'пд-схід'],
-  ['S', 'південь'], ['SW', 'пд-захід'], ['W', 'захід'], ['NW', 'пн-захід'],
-  ['up', 'вгору'], ['down', 'вниз'],
-];
+export const SIDES = ['', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'up', 'down'];
 
 /** Unit vectors for the eight compass sides. `up`/`down` have no direction. */
 export const SIDE_VEC = {
@@ -21,8 +19,7 @@ export const SIDE_SYM = {
 };
 
 export function sideLabel(v){
-  const s = SIDES.find(x => x[0] === v);
-  return s ? s[1] : '';
+  return SIDES.includes(v) ? t('side.' + v) : '';
 }
 
 /** Point where a ray in direction `u` leaves the box `a` ({x,y,w,h} centred). */

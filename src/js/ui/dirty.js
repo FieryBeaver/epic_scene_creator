@@ -7,6 +7,8 @@
  * work is at risk when it is not.
  */
 
+import { t } from '../i18n/index.js';
+
 import { dirty } from '../core/state.js';
 import { el } from '../util/dom.js';
 
@@ -16,5 +18,5 @@ export function renderDirty(){
   const dot = button.querySelector('.dirty');
   if (!dot) return;
   dot.hidden = !dirty;
-  button.title = dirty ? 'Є незбережені у файл зміни' : 'Зберегти у файл';
+  button.title = dirty ? t('top.exportDirty') : t('top.exportTip');
 }

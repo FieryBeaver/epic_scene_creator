@@ -7,6 +7,8 @@
  * discovered.
  */
 
+import { t } from '../i18n/index.js';
+
 import { marked, setMarked, mark, scene, mode } from '../core/state.js';
 import { delScene, duplicateScene } from '../core/model.js';
 import { esc } from '../util/html.js';
@@ -32,11 +34,11 @@ export function renderSelBar(){
 
   const anyOpen = ids.some(id => !scene(id).collapsed);
   bar.hidden = false;
-  bar.innerHTML = `<span class="n">Вибрано сцен: ${esc(ids.length)}</span>
-    <button class="btn sm" data-bulk="fold">${anyOpen ? 'Згорнути' : 'Розгорнути'} <kbd>c</kbd></button>
-    <button class="btn sm" data-bulk="duplicate">Дублювати <kbd>Ctrl+D</kbd></button>
-    <button class="btn sm" data-bulk="delete">Видалити <kbd>Del</kbd></button>
-    <button class="btn sm" data-bulk="clear" title="Зняти виділення">✕</button>`;
+  bar.innerHTML = `<span class="n">${esc(t('sel.count', { n: ids.length }))}</span>
+    <button class="btn sm" data-bulk="fold">${esc(anyOpen ? t('sel.fold') : t('sel.unfold'))} <kbd>c</kbd></button>
+    <button class="btn sm" data-bulk="duplicate">${esc(t('sel.duplicate'))} <kbd>Ctrl+D</kbd></button>
+    <button class="btn sm" data-bulk="delete">${esc(t('sel.delete'))} <kbd>Del</kbd></button>
+    <button class="btn sm" data-bulk="clear" title="${esc(t('sel.clearTip'))}">✕</button>`;
 }
 
 function run(action){
@@ -56,7 +58,7 @@ function run(action){
       setMarked(copies.map(c => c.id));
       if (copies[0]) select('scene', copies[0].id);
     } else if (action === 'delete'){
-      if (!confirm(`Видалити сцен: ${ids.length}? Разом з їхніми з'єднаннями.`)) return;
+      if (!confirm(t('msg.confirmDeleteScenes', { n: ids.length }))) return;
       ids.forEach(delScene);
       setMarked([]);
     }

@@ -1,80 +1,53 @@
 /**
- * Ready-made content from the epic's notes. Picking one from a dropdown fills
- * a new danger / block / treasure room / connection / event with usable text,
- * which the DM then edits.
+ * Ready-made content from the epic's notes.
+ *
+ * Only the structure lives here — ids, and the few non-text fields a template
+ * carries. The words are in the dictionaries, so a template inserts in
+ * whichever language the DM is working in. Once inserted it is their text and
+ * switching language leaves it alone.
  */
+
+import { t } from '../i18n/index.js';
 
 /** Dangers: something the scene keeps doing until it is switched off elsewhere. */
 export const TPL_DANGER = [
-  { nm: 'Орди нежиті', lvl: 3,
-    what: 'Сцена постійно заповнюється новими хвилями нежиті. Знищення окремих істот не вирішує проблему.',
-    fix: 'Некроманти в іншій сцені підтримують орди. Якщо їх убити, нова нежить перестає з\'являтися.' },
-  { nm: 'Токсичний слиз', lvl: 2,
-    what: 'Слиз і токсичні випари роблять перебування та пересування сценою небезпечними.',
-    fix: 'В алхімічній лабораторії є вентиль, який перекриває подачу слизу.' },
-  { nm: 'Надто гаряча зона', lvl: 2,
-    what: 'Температура настільки висока, що довге перебування стає небезпечним.',
-    fix: 'Древня кузня в іншій сцені. Якщо загасити — температура поступово падає.' },
-  { nm: 'Привиди дослідників', lvl: 3,
-    what: '5 Ghosts переслідують групу підземеллям. Навіть після втечі чи перемоги вони повертаються.',
-    fix: 'Знайти й поховати тіла п\'ятьох загиблих дослідників в іншій сцені.' },
+  { id: 'hordes', lvl: 3 },
+  { id: 'slime', lvl: 2 },
+  { id: 'heat', lvl: 2 },
+  { id: 'ghosts', lvl: 3 },
 ];
 
 /** Blocks: a closed door in the broad sense — needs a key from somewhere. */
 export const TPL_BLOCK = [
-  { nm: 'Жива темрява',
-    what: 'Неприродна темрява, перебування в якій зменшує максимум HP.',
-    key: 'Стародавній ліхтар (Daylight) або закляття Daylight.' },
-  { nm: 'Рунічний кодовий замок',
-    what: 'Масивні двері з рунами, відкриваються лише правильним кодом.',
-    key: 'Код записаний або захований в іншій сцені.' },
-  { nm: 'Кислотний водоспад',
-    what: 'Потік кислоти повністю перекриває прохід.',
-    key: 'Зілля імунітету до кислоти з іншої сцени.' },
+  { id: 'dark' },
+  { id: 'runes' },
+  { id: 'acid' },
 ];
 
 /** Treasure rooms: what is inside and what makes taking it interesting. */
 export const TPL_TREASURE = [
-  { nm: 'Скарб кам\'яних големів', what: '3 чорні діаманти по 1 000 gp + Стародавній ліхтар',
-    guard: 'Діаманти вставлені в статуї-големи. Спроба забрати пробуджує їх.' },
-  { nm: 'Купа монет', what: '8 000 gp + код від рунічного замка',
-    guard: 'Невидимий бехолдер спостерігає, доки хтось не торкнеться золота.' },
-  { nm: 'Алхімічний сховок', what: '4 000 gp + зілля імунітету до кислоти',
-    guard: 'Захищений алхімічний контейнер.' },
-  { nm: 'Сховок бойового мага', what: '3 000 gp + Potion of Speed + Potion of Invulnerability',
-    guard: 'Серед останків попереднього власника.' },
-  { nm: 'Архів заклинателя', what: '3 000 gp + кілька Spell Scrolls',
-    guard: 'Сувої та гроші заховані серед магічних записів.' },
-  { nm: 'Запас шукача пригод', what: '4 000 gp + Bead of Force ×3 + Dust of Disappearance',
-    guard: 'Схований запас спорядження попереднього дослідника.' },
+  { id: 'golems' },
+  { id: 'coins' },
+  { id: 'alchemy' },
+  { id: 'warmage' },
+  { id: 'archive' },
+  { id: 'supply' },
 ];
 
 /** Connections with a twist. */
 export const TPL_CONN = [
-  { nm: 'Обертовий мур', dir: 'two',
-    desc: 'Стіна повертається на 180°, лише коли з обох боків одночасно стають персонажі. Міняє їх місцями.' },
-  { nm: 'Вузька щілина', dir: 'two',
-    desc: 'Пролізти неможливо без Gaseous Form. Поруч лежать Spell Scrolls of Gaseous Form.' },
-  { nm: 'Повільний портал', dir: 'one',
-    desc: 'Перенесення кожної істоти займає 1 хвилину. Група розділяється. Працює в один бік.' },
-  { nm: 'Довге провалля', dir: 'two',
-    desc: 'Дуже довге й глибоке провалля. Перелетіти можливо, але короткочасного польоту може не вистачити.' },
+  { id: 'wall', dir: 'two' },
+  { id: 'slit', dir: 'two' },
+  { id: 'portal', dir: 'one' },
+  { id: 'chasm', dir: 'two' },
 ];
 
 /** Events: the players pull the trigger, the map changes. */
 export const TPL_EVENT = [
-  { nm: 'Обвал',
-    trig: 'Персонажі руйнують опору, підривають стіну або надто галасують.',
-    eff: 'Стеля обвалюється. Старий прохід засипано, але за завалом відкривається інший.' },
-  { nm: 'Прорив води',
-    trig: 'Хтось відкриває шлюз, розбиває стіну біля озера або тягне важіль.',
-    eff: 'Сцену затоплює. Частина локацій стає непрохідною, зате з\'являється водний шлях.' },
-  { nm: 'Пробудження механізму',
-    trig: 'Персонажі повертають шестерні або вставляють ключ у панель.',
-    eff: 'Кімнати провертаються. Один перехід закривається, інший відкривається.' },
-  { nm: 'Сигнал тривоги',
-    trig: 'Спрацьовує пастка або хтось торкається вівтаря.',
-    eff: 'Вартові підземелля дізнаються про групу. Наступні енкаунтери стають важчими.' },
+  { id: 'collapse' },
+  { id: 'flood' },
+  { id: 'gears' },
+  { id: 'alarm' },
 ];
 
 /** Bosses that can break through the Gates and land on the board as a token. */
@@ -82,3 +55,13 @@ export const TPL_BOSS = [
   'Wight', 'Flameskull', 'Wraith', 'Ghost', 'Revenant',
   'Boneclaw', 'Undead Golem', 'Deathlock Mastermind', 'Death Knight', 'Undead Dragon',
 ];
+
+/** The name shown in a template dropdown. */
+export function tplName(kind, tpl){
+  return t(`tpl.${kind}.${tpl.id}.nm`);
+}
+
+/** A template's fields, resolved in the current language. */
+export function tplText(kind, tpl, field){
+  return t(`tpl.${kind}.${tpl.id}.${field}`);
+}

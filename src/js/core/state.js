@@ -7,6 +7,8 @@
  * reaching into `S` directly wherever a helper exists.
  */
 
+import { t } from '../i18n/index.js';
+
 import { defaultRegistries } from './constants.js';
 import { newSync } from './sync/protocol.js';
 import { deviceId } from './sync/config.js';
@@ -19,7 +21,7 @@ export function blank(){
   return {
     app: BOARD_APP,
     version: BOARD_VERSION,
-    title: 'Нова дошка',
+    title: t('app.newBoard'),
     scenes: [],
     connections: [],
     tokens: [],

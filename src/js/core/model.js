@@ -6,8 +6,10 @@
  * responsible for asking the view to refresh.
  */
 
+import { t } from '../i18n/index.js';
+
 import { S, uid, byId, mark, scene, conn, sel, setSel } from './state.js';
-import { SCENE_COLORS, TOKTYPE } from './constants.js';
+import { SCENE_COLORS, tokenTypeName, tokenTypeColor } from './constants.js';
 import { locs, locName, locIcon } from './locations.js';
 
 /* ============================================================
@@ -18,7 +20,7 @@ export function newScene(x, y, patch){
   const n = S.scenes.length;
   const s = {
     id: uid('s'),
-    name: 'Нова сцена ' + (n + 1),
+    name: t('data.newScene', { n: n + 1 }),
     dm: '',
     color: SCENE_COLORS[n % SCENE_COLORS.length],
     x: x | 0, y: y | 0,
@@ -42,7 +44,7 @@ export function newConn(from, to){
     c => (c.from === from && c.to === to) || (c.from === to && c.to === from)).length;
   const c = {
     id: uid('c'), from, to,
-    name: dup ? 'З\'єднання ' + (dup + 1) : 'З\'єднання',
+    name: dup ? t('data.connectionN', { n: dup + 1 }) : t('data.connection'),
     dir: 'two', fromSide: '', toSide: '', desc: '', minutes: 1, open: true, counters: [],
   };
   S.connections.push(c);
@@ -51,14 +53,13 @@ export function newConn(from, to){
 }
 
 export function mkToken(type, name, at){
-  const def = TOKTYPE[type] || TOKTYPE.other;
-  const t = {
-    id: uid('t'), name: name || def.nm, type, color: def.c,
+  const token = {
+    id: uid('t'), name: name || tokenTypeName(type), type, color: tokenTypeColor(type),
     hp: '', notes: '', at: at || null,
   };
-  S.tokens.push(t);
+  S.tokens.push(token);
   mark();
-  return t;
+  return token;
 }
 
 /**
@@ -74,7 +75,7 @@ export function duplicateScene(id, offset = 32){
 
   const copy = JSON.parse(JSON.stringify(src));
   copy.id = uid('s');
-  copy.name = src.name + ' (копія)';
+  copy.name = t('data.copySuffix', { name: src.name });
   copy.x = src.x + offset;
   copy.y = src.y + offset;
 
@@ -96,20 +97,20 @@ export function duplicateScene(id, offset = 32){
 }
 
 export function newDanger(){
-  return { id: uid('d'), nm: 'Небезпека', what: '', fix: '', lvl: 2, active: true, src: '', srcLoc: '' };
+  return { id: uid('d'), nm: t('data.danger'), what: '', fix: '', lvl: 2, active: true, src: '', srcLoc: '' };
 }
 
 export function newBlock(){
-  return { id: uid('b'), nm: 'Блок', what: '', key: '', tgtKind: 'conn', tgt: '', tgtText: '',
+  return { id: uid('b'), nm: t('data.block'), what: '', key: '', tgtKind: 'conn', tgt: '', tgtText: '',
            src: '', srcLoc: '', done: false };
 }
 
 export function newEvent(){
-  return { id: uid('e'), nm: 'Івент', trig: '', eff: '', conn: '', act: 'open', fired: false };
+  return { id: uid('e'), nm: t('data.event'), trig: '', eff: '', conn: '', act: 'open', fired: false };
 }
 
 export function newCounter(label){
-  return { id: uid('n'), label: label || 'лічильник', value: 0 };
+  return { id: uid('n'), label: label || t('data.counter'), value: 0 };
 }
 
 /* ============================================================
