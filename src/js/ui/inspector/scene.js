@@ -6,14 +6,15 @@
 
 import { scene, regs } from '../../core/state.js';
 import { connsOf, owedBy, tokensAt, blockTargets, blockOnLoc } from '../../core/model.js';
-import { locs, locName, locLinks, regRoom, locDesc, locDescPath } from '../../core/locations.js';
+import { locs, locName, locIcon, locColor, locLinks, regRoom, locDesc, locDescPath }
+  from '../../core/locations.js';
 import { hostOf } from '../../core/registries.js';
 import { TOKTYPE, BLOCK_KINDS } from '../../core/constants.js';
 import { TPL_DANGER, TPL_BLOCK, TPL_TREASURE, TPL_EVENT } from '../../core/templates.js';
 import { esc, safeColor } from '../../util/html.js';
 import { SIDE_SYM } from '../../util/geometry.js';
 import { sceneOptions, srcRef, srcLocField, owedLoc, renderLinks } from './shared.js';
-import { isOpen } from './folds.js';
+import { isOpen, isRoomOpen } from './folds.js';
 
 export function inspScene(s){
   if (!s) return '';
@@ -191,49 +192,7 @@ function sectionRooms(s){
       + `Гробниця бога чи скелетний ключ — теж кімнати: додайте їх чипами нижче.</div>`;
   }
 
-  locs(s).forEach(l => {
-    const p = `s:${esc(s.id)}:locations:${esc(l.id)}`;
-    const block = blockOnLoc(s, l.id);
-    const owner = regRoom(l);
-    h += `<div class="item loi" data-room-id="${esc(l.id)}">
-      ${owner ? identityRow(owner) : ''}
-      <div class="ih">
-        <input type="text" placeholder="${esc(locName(l))}" data-path="${p}:nm" value="${esc(l.nm)}">
-        <button class="x" data-del="${p}"
-          title="${owner ? 'Прибрати з дошки' : 'Видалити кімнату'}">✕</button>
-      </div>
-      <label class="f"><span>Опис${owner ? ` · зі списку «${esc(owner.r.nm)}»` : ''}</span>
-        <textarea data-path="${esc(locDescPath(l, `s:${s.id}:locations:${l.id}`))}"
-          >${esc(locDesc(l))}</textarea></label>
-      <label class="tgl">
-        <input type="checkbox" data-path="${p}:hasTre" ${l.hasTre ? 'checked' : ''}> тут є скарб</label>
-      ${l.hasTre ? `
-        <label class="f" style="margin-top:6px"><span>Вміст скарбу</span>
-          <textarea data-path="${p}:tre">${esc(l.tre || '')}</textarea></label>
-        <label class="f"><span>Захисник / підстава</span>
-          <textarea data-path="${p}:guard">${esc(l.guard || '')}</textarea></label>
-        <label class="tgl">
-          <input type="checkbox" data-path="${p}:taken" ${l.taken ? 'checked' : ''}> скарб забрано</label>` : ''}
-      <div style="margin-top:7px">
-        <span style="font-size:11px;color:var(--dim)">Посилання</span>
-        ${locLinks(l).map(k => `<div class="ih" style="margin-top:4px">
-          <input type="text" style="flex:0 0 33%" placeholder="назва"
-            data-path="${p}:links:${esc(k.id)}:label" value="${esc(k.label || '')}">
-          <input type="text" placeholder="https://…"
-            data-path="${p}:links:${esc(k.id)}:url" value="${esc(k.url || '')}">
-          <button class="x" data-dellink="${esc(s.id)}:${esc(l.id)}:${esc(k.id)}">✕</button>
-        </div>`).join('')}
-        <button class="btn sm" style="margin-top:4px"
-          data-addlink="${esc(s.id)}:${esc(l.id)}">+ посилання</button>
-        ${renderLinks(l)}
-      </div>
-      <div style="font-size:11px;color:var(--dim);margin-top:5px">${block
-        ? `Перекрита блоком «${esc(block.nm)}»${block.done ? ' (вирішено)' : ''}`
-        : 'Вільна. Щоб перекрити — у блоці цієї сцени вкажіть ціллю цю кімнату.'}</div>
-      ${answersHere(owed, l)}
-      ${joinList(s, l, owner)}
-    </div>`;
-  });
+  h += locs(s).map(l => room(s, l, owed)).join('');
 
   h += `<div class="row">
     <button class="btn sm" data-add="loc" data-id="${esc(s.id)}">+ кімната</button>
@@ -241,7 +200,7 @@ function sectionRooms(s){
     ${tplPicker('treasure', s.id, TPL_TREASURE, 'скарб із заготовки…')}
   </div>`;
 
-  // One-click placement: each registry item becomes its own room here.
+  // One-click placement: each list entry becomes a room of this scene.
   regs().forEach(r => {
     h += `<p class="hint" style="margin:8px 0 4px">${esc(r.nm)} — клік робить це кімнатою цієї сцени:</p>
       <div class="row">` + r.items.map(it => {
@@ -267,26 +226,100 @@ function sectionRooms(s){
 }
 
 /**
- * The other half of a cross-scene link. A danger or block elsewhere can name
- * this exact room as where its answer lies; without this the connection is
- * only visible from the side that needs it, and the DM running *this* room
- * has no idea it matters to anyone.
+ * One room, folded shut.
+ *
+ * A scene can have half a dozen rooms and each carries a description,
+ * treasure, links and cross-references. Open all at once they bury the rest
+ * of the scene, so the header carries the name and a badge per thing worth
+ * knowing, and the body waits until it is asked for.
  */
-function answersHere(owed, l){
+function room(s, l, owed){
+  const open = isRoomOpen(l.id);
+  const owner = regRoom(l);
+  const col = safeColor(locColor(l));
+  const block = blockOnLoc(s, l.id);
   const answers = owed.filter(o => o.it.srcLoc === l.id);
-  if (!answers.length) return '';
-  return `<div style="font-size:11px;color:var(--jade);margin-top:5px">
-    ↩ Тут рішення для:
-    ${answers.map(o => `<button class="linkbtn" data-goto="${esc(o.from.id)}"
-      title="${esc(o.kind === 'danger' ? o.it.fix : o.it.key)}">`
-      + `${o.kind === 'danger' ? '☠' : '⛔'} ${esc(o.it.nm)} · ${esc(o.from.name)}`
-      + `${solvedTag(o)}</button>`).join(', ')}
+
+  const badges = [
+    l.hasTre ? `<span class="rb tre" title="${l.taken ? 'Скарб забрано' : 'Тут є скарб'}">
+      ◈${l.taken ? '✓' : ''}</span>` : '',
+    block ? `<span class="rb blk" title="Перекрита блоком «${esc(block.nm)}»">⛔</span>` : '',
+    answers.length ? `<span class="rb owe" title="Тут рішення для інших сцен">↩</span>` : '',
+    locLinks(l).filter(k => k.url).length ? `<span class="rb lnk" title="Є посилання">🔗</span>` : '',
+  ].join('');
+
+  return `<div class="room${open ? ' open' : ''}" data-room-id="${esc(l.id)}">
+    <div class="room-head">
+      <button class="room-toggle" data-room-open="${esc(l.id)}" aria-expanded="${open}">
+        <span class="caret">${open ? '▾' : '▸'}</span>
+        <span class="rname" style="color:${col}">${esc(locIcon(l))} ${esc(locName(l))}</span>
+        <span class="rbadges">${badges}</span>
+      </button>
+      <button class="x" data-del="s:${esc(s.id)}:locations:${esc(l.id)}"
+        title="${owner ? 'Прибрати з дошки' : 'Видалити кімнату'}">✕</button>
+    </div>
+    ${open ? `<div class="room-body">${roomBody(s, l, owner, block, owed)}</div>` : ''}
   </div>`;
 }
 
-function solvedTag(o){
-  const solved = o.kind === 'danger' ? o.it.active === false : !!o.it.done;
-  return solved ? ' (закрито)' : '';
+/**
+ * The room's fields.
+ *
+ * A room that belongs to a list is still one room: one name, one description,
+ * and a line saying which list it is in. It used to show an identity chip
+ * *and* a separate name box *and* a description labelled as coming from
+ * somewhere else, which read as two things stapled together.
+ */
+function roomBody(s, l, owner, block, owed){
+  const p = `s:${esc(s.id)}:locations:${esc(l.id)}`;
+  const namePath = owner ? `r:${esc(owner.r.id)}:items:${esc(owner.it.id)}:nm` : `${p}:nm`;
+  const nameValue = owner ? owner.it.nm : l.nm;
+
+  return `${owner ? membership(s, l, owner) : ''}
+    <label class="f"><span>Назва</span>
+      <input type="text" placeholder="${esc(owner ? owner.r.one || owner.r.nm : 'Кімната')}"
+        data-path="${namePath}" value="${esc(nameValue)}"></label>
+    <label class="f"><span>Опис</span>
+      <textarea data-path="${esc(locDescPath(l, `s:${s.id}:locations:${l.id}`))}"
+        >${esc(locDesc(l))}</textarea></label>
+    <label class="tgl">
+      <input type="checkbox" data-path="${p}:hasTre" ${l.hasTre ? 'checked' : ''}> тут є скарб</label>
+    ${l.hasTre ? `
+      <label class="f" style="margin-top:6px"><span>Вміст скарбу</span>
+        <textarea data-path="${p}:tre">${esc(l.tre || '')}</textarea></label>
+      <label class="f"><span>Захисник / підстава</span>
+        <textarea data-path="${p}:guard">${esc(l.guard || '')}</textarea></label>
+      <label class="tgl">
+        <input type="checkbox" data-path="${p}:taken" ${l.taken ? 'checked' : ''}> скарб забрано</label>` : ''}
+    <div style="margin-top:7px">
+      <span style="font-size:11px;color:var(--dim)">Посилання</span>
+      ${locLinks(l).map(k => `<div class="ih" style="margin-top:4px">
+        <input type="text" style="flex:0 0 33%" placeholder="назва"
+          data-path="${p}:links:${esc(k.id)}:label" value="${esc(k.label || '')}">
+        <input type="text" placeholder="https://…"
+          data-path="${p}:links:${esc(k.id)}:url" value="${esc(k.url || '')}">
+        <button class="x" data-dellink="${esc(s.id)}:${esc(l.id)}:${esc(k.id)}">✕</button>
+      </div>`).join('')}
+      <button class="btn sm" style="margin-top:4px"
+        data-addlink="${esc(s.id)}:${esc(l.id)}">+ посилання</button>
+      ${renderLinks(l)}
+    </div>
+    <div style="font-size:11px;color:var(--dim);margin-top:5px">${block
+      ? `Перекрита блоком «${esc(block.nm)}»${block.done ? ' (вирішено)' : ''}`
+      : 'Вільна. Щоб перекрити — у блоці цієї сцени вкажіть ціллю цю кімнату.'}</div>
+    ${answersHere(owed, l)}
+    ${owner ? '' : joinList(s, l, owner)}`;
+}
+
+/** Which list this room belongs to, and the way out of it. */
+function membership(s, l, owner){
+  const col = safeColor(owner.r.color, '#C7D6E0');
+  return `<div class="rmemb" style="border-color:${col}55">
+    <span style="color:${col}">${esc(owner.it.sym || owner.r.sym || '◆')} ${esc(owner.r.nm)}</span>
+    ${owner.it.note ? `<span class="hint" style="margin:0">${esc(owner.it.note)}</span>` : ''}
+    <button class="btn sm eonly" data-place="${esc(s.id)}:${esc(owner.r.id)}:${esc(owner.it.id)}"
+      title="Прибрати з дошки, лишивши елемент у списку">прибрати зі сцени</button>
+  </div>`;
 }
 
 /**
@@ -308,17 +341,26 @@ function joinList(s, l, owner){
 }
 
 /**
- * A registry room says what it is, and that is not editable here: an item
- * belongs to exactly one room, so it is moved by placing it elsewhere, not by
- * a dropdown on every room in the dungeon.
+ * The other half of a cross-scene link. A danger or block elsewhere can name
+ * this exact room as where its answer lies; without this the connection is
+ * only visible from the side that needs it, and the DM running *this* room
+ * has no idea it matters to anyone.
  */
-function identityRow(owner){
-  const col = safeColor(owner.r.color, '#C7D6E0');
-  return `<div class="row" style="margin-bottom:6px">
-    <span class="chip" style="color:${col};border-color:${col}55;background:${col}14">
-      ${esc(owner.it.sym || owner.r.sym || '◆')} ${esc(owner.r.one || owner.r.nm)} ${esc(owner.it.nm)}</span>
-    ${owner.it.note ? `<span class="hint" style="margin:0">${esc(owner.it.note)}</span>` : ''}
+function answersHere(owed, l){
+  const answers = owed.filter(o => o.it.srcLoc === l.id);
+  if (!answers.length) return '';
+  return `<div style="font-size:11px;color:var(--jade);margin-top:5px">
+    ↩ Тут рішення для:
+    ${answers.map(o => `<button class="linkbtn" data-goto="${esc(o.from.id)}"
+      title="${esc(o.kind === 'danger' ? o.it.fix : o.it.key)}">`
+      + `${o.kind === 'danger' ? '☠' : '⛔'} ${esc(o.it.nm)} · ${esc(o.from.name)}`
+      + `${solvedTag(o)}</button>`).join(', ')}
   </div>`;
+}
+
+function solvedTag(o){
+  const solved = o.kind === 'danger' ? o.it.active === false : !!o.it.done;
+  return solved ? ' (закрито)' : '';
 }
 
 /* ---------- counters ---------- */

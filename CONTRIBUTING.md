@@ -7,6 +7,10 @@ npm install
 npm run dev      # http://127.0.0.1:5173
 ```
 
+`npm run dev` goes through `scripts/dev.mjs` rather than esbuild's CLI: the
+CLI's serve mode stops the moment stdin closes, so it dies whenever it is
+started detached or from a script.
+
 `npm install` pulls exactly one package, esbuild, and only the standalone
 build needs it. The app itself is plain ES modules — no transpiling, no
 bundling, no framework. Edit a file, reload the page.

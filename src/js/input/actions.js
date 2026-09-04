@@ -18,7 +18,7 @@ import { renderAll, renderLive, select } from '../ui/render.js';
 import { focusScene } from '../ui/camera.js';
 import { renderInsp } from '../ui/inspector/index.js';
 import { setTab, clearSearch } from '../ui/rail.js';
-import { toggleSection } from '../ui/inspector/folds.js';
+import { toggleSection, toggleRoom, openRoomFold } from '../ui/inspector/folds.js';
 import { startLink } from './linkmode.js';
 
 export function initActions(){
@@ -82,6 +82,13 @@ function onClick(ev){
 
   if (target.closest('[data-search-clear]')){ clearSearch(); return; }
 
+  /* ---------- fold a room open ---------- */
+  if ((e = hit('data-room-open'))){
+    toggleRoom(e.getAttribute('data-room-open'));
+    renderInsp();
+    return;
+  }
+
   /* ---------- fold an inspector section ---------- */
   if ((e = hit('data-section'))){
     const section = e.closest('.isect');
@@ -116,6 +123,9 @@ function onClick(ev){
 function openRoom(spec){
   const [sceneId, locId] = spec.split(':');
   select('scene', sceneId);
+
+  openRoomFold(locId);
+  renderInsp();
 
   // The panel has just been rebuilt, so wait a frame before finding the room.
   requestAnimationFrame(() => {

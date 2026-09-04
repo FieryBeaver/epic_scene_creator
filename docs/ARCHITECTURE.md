@@ -123,6 +123,15 @@ once on pointerup.
   clear) lives in the menu, what is constant does not.
 - **Bulk actions appear with a selection** and next to it, rather than sitting
   disabled the rest of the time.
+- **Rooms are accordions too.** A scene can hold half a dozen, each with a
+  description, treasure, links and cross-references. The header carries the
+  name and one badge per thing worth knowing; the body waits to be asked for.
+  Their open state is session-only — room ids are per board and there can be
+  hundreds, so persisting every one ever opened would grow without bound.
+- **A room in a list is one thing.** It used to show an identity chip *and* a
+  separate name box *and* a description labelled as coming from elsewhere,
+  which read as two objects stapled together. Now: one name (which is the
+  list entry's name), one description, and a line saying which list it is in.
 - **Progressive disclosure in the inspector.** Nine open fieldsets was a wall
   of form; each is now a section with its count in the header — enough
   information scent to decide whether to open it. Empty sections start closed,

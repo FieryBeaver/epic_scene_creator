@@ -13,7 +13,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "esbuild --servedir=src --serve=127.0.0.1:5173",
+    "dev": "node scripts/dev.mjs",
     "build": "node build.mjs",
     "test": "node --test test/",
     "check": "npm run test && npm run build"

@@ -43,9 +43,15 @@ button{cursor:pointer}
 .linkbtn:hover{color:#8FE3C6}
 
 /* ---------- form controls ---------- */
-input[type=text],input[type=number],select,textarea{
+/* `search` belongs here too: left out, it renders as a light-themed browser
+   default in the middle of a dark panel. */
+input[type=text],input[type=number],input[type=search],input[type=password],
+select,textarea{
   width:100%;background:#0E1412;border:1px solid var(--line);border-radius:4px;padding:4px 7px;
+  -webkit-appearance:none;appearance:none;
 }
+input::placeholder,textarea::placeholder{color:var(--dim)}
+input:focus,select:focus,textarea:focus{border-color:#4E6155}
 textarea{resize:vertical;min-height:46px}
 input[type=color]{width:34px;height:26px;padding:0;border:1px solid var(--line);background:none;border-radius:4px}
 label.f{display:block;margin-bottom:7px}

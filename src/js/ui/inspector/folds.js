@@ -29,3 +29,26 @@ export function toggleSection(key, fallback){
   save();
   return state[key];
 }
+
+/**
+ * Which rooms are unfolded.
+ *
+ * Session-only, unlike sections: room ids are per board and there can be
+ * hundreds of them, so writing every one a DM ever opened into localStorage
+ * would grow without bound for no benefit.
+ */
+const openRooms = new Set();
+
+export function isRoomOpen(id){
+  return openRooms.has(id);
+}
+
+export function toggleRoom(id){
+  if (openRooms.has(id)) openRooms.delete(id);
+  else openRooms.add(id);
+  return openRooms.has(id);
+}
+
+export function openRoomFold(id){
+  openRooms.add(id);
+}

@@ -69,7 +69,8 @@ export function renderPaneScenes(){
   const hits = S.scenes.filter(matches);
   const filtering = !!query;
 
-  let h = `<h3>Сцени · ${filtering ? `${hits.length} з ${S.scenes.length}` : S.scenes.length}</h3>`;
+  let h = `<h3>Сцени · ${hits.length}`
+    + `${filtering ? `<span class="of"> з ${S.scenes.length}</span>` : ''}</h3>`;
 
   if (S.scenes.length > 4 || filtering){
     h += `<div class="srch">
