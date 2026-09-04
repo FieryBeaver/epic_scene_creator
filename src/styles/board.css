@@ -1,0 +1,60 @@
+/* The canvas: grid backdrop, scene nodes, connection wires and their
+   labels, draggable tokens and the zoom HUD. */
+
+#boardWrap{position:relative;overflow:hidden;background:
+  radial-gradient(ellipse at 50% 0%,#182320 0%,var(--ink) 70%);cursor:grab}
+#boardWrap.panning{cursor:grabbing}
+#boardWrap.linking{cursor:crosshair}
+#grid{position:absolute;inset:0;pointer-events:none;opacity:.5}
+#world{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+
+/* ---------- edges ---------- */
+#edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+#edges *{pointer-events:none}
+#edges .hit{pointer-events:stroke;stroke:transparent;stroke-width:18;fill:none;cursor:pointer}
+#edges .wire{fill:none;stroke:#54685C;stroke-width:2.2}
+#edges .wire.oneway{stroke-dasharray:9 5}
+#edges .wire.shut{stroke:#7A4B45;stroke-dasharray:3 6}
+#edges .wire.hl{stroke:var(--jade);stroke-width:3.4}
+#edges .wire.sel{stroke:var(--ochre);stroke-width:3.4}
+
+.elabel{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;
+  align-items:center;gap:3px;pointer-events:none;user-select:none}
+.elabel>*{pointer-events:auto}
+.elabel .elab{background:#141A17;cursor:pointer}
+.erow{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+
+/* ---------- HUD ---------- */
+#hud{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;align-items:center;
+  background:#141A17CC;border:1px solid var(--line);border-radius:var(--r);padding:5px 7px;backdrop-filter:blur(3px)}
+#hud .z{color:var(--dim);min-width:42px;text-align:center;font-variant-numeric:tabular-nums}
+#modeBar{position:absolute;left:50%;transform:translateX(-50%);top:12px;display:none;
+  background:#20463AEE;border:1px solid var(--jade);border-radius:var(--r);padding:6px 12px;color:#CDF3E6}
+#modeBar.on{display:block}
+
+/* ---------- scene node ---------- */
+.node{
+  position:absolute;width:236px;background:linear-gradient(180deg,#20292400,#0000)
+    ,var(--stone2);
+  border:1px solid var(--line);border-left:4px solid var(--nc,#54685C);border-radius:var(--r);
+  box-shadow:0 6px 18px #0007;user-select:none;
+}
+.node.sel{border-color:var(--ochre);box-shadow:0 0 0 1px var(--ochre),0 8px 22px #0009}
+.node.dim{opacity:.35}
+.node.hl{box-shadow:0 0 0 2px var(--jade),0 8px 22px #0009}
+.node .head{padding:7px 9px 6px;cursor:grab;border-bottom:1px solid #ffffff10}
+.node .head:active{cursor:grabbing}
+.node .nm{font-family:var(--serif);font-size:14.5px;font-weight:600;line-height:1.25}
+.node .dm{font-size:11px;color:var(--dim);margin-top:1px}
+.node .body{padding:6px 9px 8px;display:flex;flex-direction:column;gap:5px}
+.node .foot{display:flex;gap:4px;padding:0 7px 7px}
+
+/* ---------- tokens ---------- */
+.tokrow{display:flex;flex-wrap:wrap;gap:4px;padding-top:2px;border-top:1px dashed #ffffff14}
+.tok{
+  display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 7px;border-radius:11px;
+  border:1px solid var(--tc,#666);background:#0008;color:var(--tc,#ccc);cursor:grab;touch-action:none;
+}
+.tok:active{cursor:grabbing}
+.tok .dot{width:7px;height:7px;border-radius:50%;background:var(--tc,#888)}
+.tok.ghost{position:fixed;z-index:999;pointer-events:none;box-shadow:0 4px 14px #000a}

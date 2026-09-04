@@ -1,0 +1,47 @@
+/* Application shell: top bar, the three-column grid and the drag handles
+   that resize the side panels. */
+
+#app{display:grid;grid-template-rows:auto 1fr;height:100%}
+
+/* ---------- top bar ---------- */
+#top{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;
+  background:linear-gradient(180deg,#1D2621,#141A17);border-bottom:1px solid var(--line);
+  overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+}
+#top::-webkit-scrollbar{display:none}
+#top>*{flex:0 0 auto}
+#top .spacer{flex:1 1 auto;min-width:6px}
+#top h1{
+  font-family:var(--serif);font-weight:600;font-size:17px;margin:0 14px 0 0;letter-spacing:.2px;
+  white-space:nowrap;
+}
+#top h1 span{color:var(--jade)}
+.spacer{flex:1}
+
+/* ---------- columns ---------- */
+#main{display:grid;grid-template-columns:var(--railW,288px) 6px 1fr 6px var(--inspW,340px);min-height:0}
+#rail,#insp{background:var(--stone);overflow:auto;overflow-x:hidden;min-height:0;min-width:0;
+  overscroll-behavior:contain}
+#rail{border-right:1px solid var(--line)}
+#insp{border-left:1px solid var(--line)}
+#boardWrap{min-width:0}
+
+.gut{background:var(--stone);cursor:col-resize;touch-action:none;position:relative}
+.gut::after{content:"";position:absolute;inset:0;background:var(--line);
+  width:1px;left:50%;transition:background .12s,width .12s}
+.gut:hover::after,.gut.drag::after{background:var(--jade);width:3px;left:calc(50% - 1px)}
+body.resizing{cursor:col-resize;user-select:none}
+
+#main.collapsedL{grid-template-columns:0 6px 1fr 6px var(--inspW,340px)}
+#main.collapsedR{grid-template-columns:var(--railW,288px) 6px 1fr 6px 0}
+#main.collapsedL.collapsedR{grid-template-columns:0 6px 1fr 6px 0}
+#main.collapsedL #rail,#main.collapsedR #insp{border:0;overflow:hidden}
+
+/* ---------- view mode ---------- */
+/* Everything that edits the board carries .eonly and disappears in view mode. */
+body.view .eonly{display:none!important}
+body.view #top h1 span{color:var(--ochre)}
+body.view #bMode{background:#4A3413;border-color:var(--ochre);color:#F5D9AE}
+
+@media(max-width:1100px){#main{--railW:230px;--inspW:290px}}

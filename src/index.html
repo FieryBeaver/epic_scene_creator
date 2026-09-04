@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Дошка сцен — Гробниця Дев'яти Богів</title>
+<meta name="description" content="Дошка сцен для епічної кампанії на кілька столів: сцени, переходи, небезпеки, блоки, івенти й токени.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles/tokens.css">
+<link rel="stylesheet" href="./styles/layout.css">
+<link rel="stylesheet" href="./styles/board.css">
+<link rel="stylesheet" href="./styles/rail.css">
+<link rel="stylesheet" href="./styles/inspector.css">
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <h1>Гробниця <span>Дев'яти Богів</span> · дошка сцен</h1>
+    <button class="btn eonly" id="bAddScene">+ Сцена</button>
+    <button class="btn eonly" id="bLink">🔗 З'єднати</button>
+    <button class="btn" id="bFit">Вмістити все</button>
+    <button class="btn" id="bMode">👁 Режим перегляду</button>
+    <div class="spacer"></div>
+    <button class="btn" id="bImport">Імпорт JSON</button>
+    <button class="btn acc" id="bExport">Експорт JSON</button>
+    <button class="btn eonly" id="bDemo">Демо-розкладка</button>
+    <button class="btn warn eonly" id="bClear">Очистити</button>
+    <input type="file" id="fileIn" accept=".json,application/json" hidden>
+  </header>
+
+  <div id="main">
+    <aside id="rail">
+      <nav id="tabs"></nav>
+      <div id="panes">
+        <section class="pane on" id="p-scenes"></section>
+        <section class="pane" id="p-tokens"></section>
+      </div>
+    </aside>
+
+    <div class="gut" id="gutL" title="Тягніть, щоб змінити ширину. Подвійний клік — згорнути"></div>
+
+    <div id="boardWrap">
+      <canvas id="grid"></canvas>
+      <div id="world">
+        <svg id="edges"></svg>
+      </div>
+      <div id="modeBar"></div>
+      <div id="hud">
+        <button class="btn sm" id="zOut">−</button>
+        <span class="z" id="zLbl">100%</span>
+        <button class="btn sm" id="zIn">+</button>
+        <button class="btn sm" id="zRst">1:1</button>
+      </div>
+    </div>
+
+    <div class="gut" id="gutR" title="Тягніть, щоб змінити ширину. Подвійний клік — згорнути"></div>
+
+    <aside id="insp"></aside>
+  </div>
+</div>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

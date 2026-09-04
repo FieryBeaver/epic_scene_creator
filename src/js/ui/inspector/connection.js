@@ -1,0 +1,94 @@
+/** Connection editor: ends, direction, pinned sides, counters, tokens. */
+
+import { scene } from '../../core/state.js';
+import { tokensAt } from '../../core/model.js';
+import { TPL_CONN } from '../../core/templates.js';
+import { esc } from '../../util/html.js';
+import { SIDES, SIDE_SYM } from '../../util/geometry.js';
+
+export function inspConn(c){
+  if (!c) return '';
+  const a = scene(c.from), b = scene(c.to);
+  const toks = tokensAt('conn', c.id);
+  const id = esc(c.id);
+
+  return `<div class="ihead">
+      <div class="t">${esc(c.name)}</div>
+      <div class="s">Зовнішнє з'єднання</div>
+    </div>
+    <div class="ipad">
+      <fieldset><legend>Кінці</legend>
+        <div class="row" style="justify-content:space-between">
+          <button class="linkbtn" data-goto="${esc(c.from)}">${a ? esc(a.name) : '?'}</button>
+          <span>${c.dir === 'one' ? '→' : '↔'}</span>
+          <button class="linkbtn" data-goto="${esc(c.to)}">${b ? esc(b.name) : '?'}</button>
+        </div>
+        <button class="btn sm" data-swap="${id}" style="margin-top:7px">Поміняти напрям місцями</button>
+      </fieldset>
+
+      <fieldset><legend>Властивості</legend>
+        <label class="f"><span>Назва</span>
+          <input type="text" data-path="c:${id}:name" value="${esc(c.name)}"></label>
+        <div class="grid2">
+          <label class="f"><span>Тип</span>
+            <select data-path="c:${id}:dir">
+              <option value="two"${c.dir === 'two' ? ' selected' : ''}>двосторонній</option>
+              <option value="one"${c.dir === 'one' ? ' selected' : ''}>однобокий</option>
+            </select></label>
+          <label class="f"><span>Хвилин на перехід</span>
+            <input type="number" min="0" data-num="1" data-path="c:${id}:minutes" value="${esc(c.minutes)}"></label>
+        </div>
+        <div class="grid2">
+          <label class="f"><span>Виходить із «${esc(a ? a.name : '?')}» на</span>
+            <select data-path="c:${id}:fromSide">${sideOptions(c.fromSide)}</select></label>
+          <label class="f"><span>Входить у «${esc(b ? b.name : '?')}» з</span>
+            <select data-path="c:${id}:toSide">${sideOptions(c.toSide)}</select></label>
+        </div>
+        <label class="f"><span>Як працює</span>
+          <textarea data-path="c:${id}:desc">${esc(c.desc)}</textarea></label>
+        <label class="tgl">
+          <input type="checkbox" data-path="c:${id}:open" ${c.open !== false ? 'checked' : ''}> прохід відкритий</label>
+        <div class="row" style="margin-top:8px">
+          <select class="btn sm" data-tpl="conn" data-id="${id}" style="width:auto">
+            <option value="">з заготовки…</option>
+            ${TPL_CONN.map((t, i) => `<option value="${i}">${esc(t.nm)}</option>`).join('')}
+          </select>
+          <button class="x" data-del-conn="${id}">Видалити</button>
+        </div>
+      </fieldset>
+
+      ${counters(c, id)}
+      ${tokens(toks)}
+    </div>`;
+}
+
+function sideOptions(current){
+  return SIDES.map(([v, t]) =>
+    `<option value="${v}"${current === v ? ' selected' : ''}>`
+    + `${SIDE_SYM[v] ? SIDE_SYM[v] + ' ' : ''}${esc(t)}</option>`).join('');
+}
+
+function counters(c, id){
+  let h = `<fieldset><legend>Лічильники переходу</legend>`;
+  if (!c.counters.length){
+    h += `<div class="empty">Немає. Наприклад: «проходів», «хвилин витрачено», «союзників пройшло».</div>`;
+  }
+  c.counters.forEach(k => {
+    const p = `c:${id}:counters:${esc(k.id)}`;
+    h += `<div class="ih">
+      <input type="text" data-path="${p}:label" value="${esc(k.label)}">
+      <input type="number" style="width:70px" data-num="1" data-path="${p}:value" value="${esc(k.value)}">
+      <button class="x" data-del="${p}">✕</button>
+    </div>`;
+  });
+  return h + `<button class="btn sm" data-add="conncounter" data-id="${id}">+ лічильник</button></fieldset>`;
+}
+
+function tokens(toks){
+  let h = `<fieldset><legend>Токени на переході · ${toks.length}</legend>`;
+  if (!toks.length) h += `<div class="empty">Порожньо. Перетягніть токен на підпис з'єднання.</div>`;
+  toks.forEach(t => {
+    h += `<div><button class="linkbtn" data-seltoken="${esc(t.id)}">${esc(t.name)}</button></div>`;
+  });
+  return h + `</fieldset>`;
+}

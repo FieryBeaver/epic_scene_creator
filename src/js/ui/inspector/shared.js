@@ -1,0 +1,77 @@
+/**
+ * Fragments shared by the edit forms and the read-only briefing:
+ * cross-references between scenes, counter strips, link lists.
+ */
+
+import { S, byId, scene } from '../../core/state.js';
+import { locs, locName, locIcon, locLinks } from '../../core/locations.js';
+import { esc, safeUrl, linkLabel } from '../../util/html.js';
+
+/** `<option>` list of every scene, optionally with an empty choice on top. */
+export function sceneOptions(current, withEmpty){
+  let h = withEmpty ? `<option value="">— не вказано —</option>` : '';
+  S.scenes.forEach(s => {
+    h += `<option value="${esc(s.id)}"${s.id === current ? ' selected' : ''}>${esc(s.name)}</option>`;
+  });
+  return h;
+}
+
+/**
+ * "Where the answer is": a jump button to the scene a danger or block points
+ * at, narrowed to a room when one was named.
+ */
+export function srcRef(it){
+  if (!it.src) return `<span class="empty">— не призначено —</span>`;
+  const s = scene(it.src);
+  if (!s) return `<span class="empty">сцену видалено</span>`;
+  const l = it.srcLoc ? byId(locs(s), it.srcLoc) : null;
+  return `<button class="linkbtn" data-goto="${esc(s.id)}">→ ${esc(s.name)}`
+    + `${l ? ' · ' + locIcon(l) + ' ' + esc(locName(l)) : ''}</button>`;
+}
+
+/** Room picker narrowing a `src` reference down to one room of that scene. */
+export function srcLocField(it, path){
+  const s = it.src && scene(it.src);
+  if (!s) return '';
+  if (!locs(s).length){
+    return `<div style="font-size:11px;color:var(--dim);margin-bottom:6px">`
+      + `У сцені «${esc(s.name)}» ще немає локацій — додайте їх там, щоб указати точне місце.</div>`;
+  }
+  return `<label class="f"><span>Конкретна локація в «${esc(s.name)}»</span>
+    <select data-path="${esc(path)}:srcLoc">
+      <option value="">— уся сцена —</option>
+      ${locs(s).map(l => `<option value="${esc(l.id)}"${it.srcLoc === l.id ? ' selected' : ''}>`
+        + `${locIcon(l)} ${esc(locName(l))}</option>`).join('')}
+    </select></label>`;
+}
+
+/** Label of the room in *this* scene that holds someone else's answer. */
+export function owedLoc(hostScene, it){
+  const l = it.srcLoc ? byId(locs(hostScene), it.srcLoc) : null;
+  return l ? `${locIcon(l)} ${esc(locName(l))}` : '';
+}
+
+/** Danger level as filled/empty dots. */
+export function lvlDots(n){
+  const level = Math.min(4, Math.max(1, n || 1));
+  return '●'.repeat(level) + `<span style="opacity:.3">${'●'.repeat(4 - level)}</span>`;
+}
+
+/** Row of +/− counters for a scene (`s`) or a connection (`c`). */
+export function ctrRow(host, kind){
+  if (!host.counters.length) return '';
+  return `<div class="row" style="margin-top:4px">` + host.counters.map(c =>
+    `<span class="ctr"><b>${esc(c.label)}</b>`
+    + `<button data-ctr="${kind}:${esc(host.id)}:${esc(c.id)}:-1">−</button>`
+    + `<span class="v">${esc(c.value)}</span>`
+    + `<button data-ctr="${kind}:${esc(host.id)}:${esc(c.id)}:1">+</button></span>`).join('') + `</div>`;
+}
+
+/** Clickable external links attached to a room. */
+export function renderLinks(l){
+  const links = locLinks(l).filter(k => k.url && safeUrl(k.url));
+  if (!links.length) return '';
+  return `<div class="lnks">` + links.map(k =>
+    `<a class="lnk" href="${esc(safeUrl(k.url))}" target="_blank" rel="noopener noreferrer">`
+    + `🔗 ${esc(linkLabel(k))}</a>`).join('') + `</div>`;
+}
