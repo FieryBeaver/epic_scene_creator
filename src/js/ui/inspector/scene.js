@@ -6,7 +6,7 @@
 
 import { scene, regs } from '../../core/state.js';
 import { connsOf, owedBy, tokensAt, blockTargets, blockOnLoc } from '../../core/model.js';
-import { locs, locName, locLinks } from '../../core/locations.js';
+import { locs, locName, locLinks, regRoom, locDesc, locDescPath } from '../../core/locations.js';
 import { hostOf } from '../../core/registries.js';
 import { TOKTYPE, BLOCK_KINDS } from '../../core/constants.js';
 import { TPL_DANGER, TPL_BLOCK, TPL_TREASURE, TPL_EVENT } from '../../core/templates.js';
@@ -166,20 +166,23 @@ function sectionRooms(s){
   let h = `<fieldset><legend>Кімнати · ${locs(s).length}</legend>`;
   if (!locs(s).length){
     h += `<div class="empty">Кімната — частина сцени: зала, коридор, ділянка. `
-      + `У кімнаті може лежати скарб, стояти гробниця бога чи ховатися скелетний ключ.</div>`;
+      + `Гробниця бога чи скелетний ключ — теж кімнати: додайте їх чипами нижче.</div>`;
   }
 
   locs(s).forEach(l => {
     const p = `s:${esc(s.id)}:locations:${esc(l.id)}`;
     const block = blockOnLoc(s, l.id);
+    const owner = regRoom(l);
     h += `<div class="item loi">
+      ${owner ? identityRow(owner) : ''}
       <div class="ih">
         <input type="text" placeholder="${esc(locName(l))}" data-path="${p}:nm" value="${esc(l.nm)}">
-        <button class="x" data-del="${p}">✕</button>
+        <button class="x" data-del="${p}"
+          title="${owner ? 'Прибрати з дошки' : 'Видалити кімнату'}">✕</button>
       </div>
-      <label class="f"><span>Опис</span>
-        <textarea data-path="${p}:notes">${esc(l.notes || '')}</textarea></label>
-      <div class="grid2">${regs().map(r => registrySlot(s, l, r)).join('')}</div>
+      <label class="f"><span>Опис${owner ? ` · зі списку «${esc(owner.r.nm)}»` : ''}</span>
+        <textarea data-path="${esc(locDescPath(l, `s:${s.id}:locations:${l.id}`))}"
+          >${esc(locDesc(l))}</textarea></label>
       <label class="tgl">
         <input type="checkbox" data-path="${p}:hasTre" ${l.hasTre ? 'checked' : ''}> тут є скарб</label>
       ${l.hasTre ? `
@@ -217,7 +220,7 @@ function sectionRooms(s){
 
   // One-click placement: each registry item becomes its own room here.
   regs().forEach(r => {
-    h += `<p class="hint" style="margin:8px 0 4px">${esc(r.nm)} — клік створює тут окрему кімнату:</p>
+    h += `<p class="hint" style="margin:8px 0 4px">${esc(r.nm)} — клік робить це кімнатою цієї сцени:</p>
       <div class="row">` + r.items.map(it => {
       const host = hostOf(r.id, it.id);
       const col = safeColor(r.color, '#C7D6E0');
@@ -263,18 +266,18 @@ function solvedTag(o){
   return solved ? ' (закрито)' : '';
 }
 
-function registrySlot(s, l, r){
-  return `<label class="f"><span>${esc(r.nm)}</span>
-    <select data-slot="${esc(s.id)}:${esc(l.id)}:${esc(r.id)}">
-      <option value="">— немає —</option>
-      ${r.items.map(it => {
-        const host = hostOf(r.id, it.id);
-        const mine = (l.reg || {})[r.id] === it.id;
-        return `<option value="${esc(it.id)}"${mine ? ' selected' : ''}${host && !mine ? ' disabled' : ''}>`
-          + `${it.sym ? esc(it.sym) + ' ' : ''}${esc(it.nm)}`
-          + `${host && !mine ? ' — у «' + esc(host.name) + '»' : ''}</option>`;
-      }).join('')}
-    </select></label>`;
+/**
+ * A registry room says what it is, and that is not editable here: an item
+ * belongs to exactly one room, so it is moved by placing it elsewhere, not by
+ * a dropdown on every room in the dungeon.
+ */
+function identityRow(owner){
+  const col = safeColor(owner.r.color, '#C7D6E0');
+  return `<div class="row" style="margin-bottom:6px">
+    <span class="chip" style="color:${col};border-color:${col}55;background:${col}14">
+      ${esc(owner.it.sym || owner.r.sym || '◆')} ${esc(owner.r.one || owner.r.nm)} ${esc(owner.it.nm)}</span>
+    ${owner.it.note ? `<span class="hint" style="margin:0">${esc(owner.it.note)}</span>` : ''}
+  </div>`;
 }
 
 /* ---------- counters ---------- */

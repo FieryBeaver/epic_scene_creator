@@ -64,7 +64,7 @@ test('serialize stamps the viewport and the export time', () => {
   const data = serialize(blank(), camera);
   assert.deepEqual(data.camera, camera);
   assert.equal(data.app, 'toa-scene-board');
-  assert.equal(data.version, 3);
+  assert.equal(data.version, 4);
   assert.match(data.exportedAt, /^\d{4}-\d{2}-\d{2}T/);
 });
 
@@ -186,4 +186,96 @@ test('empty registry slots are not carried over', () => {
     scenes: [{ id: 's1', name: 'Одна', locations: [{ id: 'l1', nm: 'Зала', reg: { gods: '' } }] }],
   });
   assert.deepEqual(b.scenes[0].locations[0].reg, {});
+});
+
+/* ---------- migration from v3: a registry item is a room ---------- */
+
+test('a room description moves onto the list item', () => {
+  const b = deserialize({
+    version: 3,
+    scenes: [{ id: 's1', name: 'Сцена', locations: [
+      { id: 'l1', nm: '', notes: 'Кам’яна зала з дев’ятьма нішами', reg: { gods: 'moa' } },
+    ] }],
+  });
+  const room = b.scenes[0].locations[0];
+  const moa = b.registries.find(r => r.id === 'gods').items.find(i => i.id === 'moa');
+  assert.equal(moa.desc, 'Кам’яна зала з дев’ятьма нішами');
+  assert.equal(room.notes, '', 'the description is not left in both places');
+});
+
+test('an existing item description is not overwritten by a room note', () => {
+  const b = deserialize({
+    registries: [{ id: 'gods', nm: 'Боги', one: 'Гробниця', sym: '⛩', color: '#54BE9B',
+                   items: [{ id: 'moa', nm: 'Моа', desc: 'вже написано' }] }],
+    scenes: [{ id: 's1', name: 'Сцена',
+               locations: [{ id: 'l1', notes: 'нотатка кімнати', reg: { gods: 'moa' } }] }],
+  });
+  assert.equal(b.registries[0].items[0].desc, 'вже написано');
+});
+
+test('a room that was several list items at once becomes several rooms', () => {
+  const b = deserialize({
+    version: 3,
+    scenes: [{ id: 's1', name: 'Сцена', locations: [
+      { id: 'l1', nm: 'Все одразу', reg: { gods: 'moa', keys: 'k3' } },
+    ] }],
+  });
+  const rooms = b.scenes[0].locations;
+  assert.equal(rooms.length, 2, 'the tomb and the key are separate rooms now');
+  assert.deepEqual(rooms[0].reg, { gods: 'moa' });
+  assert.deepEqual(rooms[1].reg, { keys: 'k3' });
+  assert.equal(rooms[0].nm, 'Все одразу', 'the named room keeps its name');
+});
+
+test('every room carries at most one list item', () => {
+  const b = deserialize({
+    version: 3,
+    scenes: [{ id: 's1', name: 'Сцена', locations: [
+      { id: 'l1', reg: { gods: 'moa', keys: 'k3', nope: 'x' } },
+    ] }],
+  });
+  b.scenes[0].locations.forEach(l => {
+    assert.ok(Object.keys(l.reg).length <= 1, `room ${l.id} has ${JSON.stringify(l.reg)}`);
+  });
+});
+
+test('the same item placed twice stays in the first room only', () => {
+  const b = deserialize({
+    version: 3,
+    scenes: [
+      { id: 's1', name: 'Перша', locations: [{ id: 'l1', reg: { gods: 'moa' } }] },
+      { id: 's2', name: 'Друга', locations: [{ id: 'l2', nm: 'Копія', reg: { gods: 'moa' } }] },
+    ],
+  });
+  const holders = b.scenes.flatMap(s => s.locations.filter(l => l.reg.gods === 'moa'));
+  assert.equal(holders.length, 1);
+  assert.equal(b.scenes[0].locations[0].reg.gods, 'moa');
+});
+
+test('an entry naming a list item that no longer exists is dropped', () => {
+  const b = deserialize({
+    version: 3,
+    scenes: [{ id: 's1', name: 'Сцена',
+               locations: [{ id: 'l1', nm: 'Зала', reg: { gods: 'ніхто' } }] }],
+  });
+  assert.deepEqual(b.scenes[0].locations[0].reg, {});
+});
+
+test('plain rooms keep their own notes', () => {
+  const b = deserialize({
+    scenes: [{ id: 's1', name: 'Сцена',
+               locations: [{ id: 'l1', nm: 'Печера мовчання', notes: 'Велика печера' }] }],
+  });
+  assert.equal(b.scenes[0].locations[0].notes, 'Велика печера');
+});
+
+test('list items round-trip their description', () => {
+  const before = deserialize({
+    registries: [{ id: 'art', nm: 'Артефакти', one: 'Схованка', sym: '✶', color: '#6A9BD1',
+                   items: [{ id: 'i1', nm: 'Око Векни', desc: 'Ніша у стіні' }] }],
+    scenes: [{ id: 's1', name: 'Сцена', locations: [{ id: 'l1', reg: { art: 'i1' } }] }],
+  });
+  const after = deserialize(JSON.parse(JSON.stringify(serialize(before, camera))));
+  assert.equal(after.registries[0].items[0].desc, 'Ніша у стіні');
+  assert.deepEqual(after.scenes, before.scenes);
 });

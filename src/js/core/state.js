@@ -12,7 +12,7 @@ import { newSync } from './sync/protocol.js';
 import { deviceId } from './sync/config.js';
 
 export const BOARD_APP = 'toa-scene-board';
-export const BOARD_VERSION = 3;
+export const BOARD_VERSION = 4;   // v4: a registry item is a room, and carries its description
 
 /** An empty board. */
 export function blank(){

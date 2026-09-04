@@ -131,6 +131,20 @@ function renderPaneTokens(){
 
 /* ---------- registries ---------- */
 
+/**
+ * Refresh the list panes unless the DM is typing into one.
+ *
+ * A registry item's description is edited from two places at once — the list
+ * on the left and the room on the right, both on screen together — so an edit
+ * in either has to show up in the other. Skipping the rebuild while the focus
+ * is inside a pane is what keeps that from eating the caret.
+ */
+export function refreshRegPanes(){
+  const active = document.activeElement;
+  if (active && active.closest && active.closest('.pane[id^="p-reg-"]')) return;
+  renderRegPanes();
+}
+
 function renderRegPanes(){
   const box = el('panes');
   const wanted = new Set(regs().map(r => 'p-reg-' + r.id));
@@ -155,7 +169,8 @@ function regPaneHtml(r){
   const id = esc(r.id);
 
   let h = `<h3>${esc(r.sym || '')} ${esc(r.nm)} · ${placed}/${r.items.length}</h3>
-    <p class="hint">Кожен елемент лежить рівно в одній кімнаті. Клік по сцені — перехід на дошку.</p>
+    <p class="hint">Кожен елемент — окрема кімната, рівно в одній сцені.
+      Опис, написаний тут, показується в тій кімнаті. Клік по сцені — перехід на дошку.</p>
     <div class="eonly" style="border:1px solid var(--line);border-radius:5px;padding:7px;margin-bottom:9px">
       <div class="grid2">
         <label class="f"><span>Назва списку</span>
@@ -184,8 +199,12 @@ function regPaneHtml(r){
         <input type="text" placeholder="назва" data-path="${p}:nm" value="${esc(it.nm)}">
         <input type="text" placeholder="значок" data-path="${p}:sym" value="${esc(it.sym || '')}">
       </div>
-      <input class="eonly" type="text" style="margin-top:4px" placeholder="нотатка"
+      <input class="eonly" type="text" style="margin-top:4px" placeholder="коротка нотатка"
         data-path="${p}:note" value="${esc(it.note || '')}">
+      <label class="f eonly" style="margin-top:5px"><span>Опис кімнати</span>
+        <textarea data-path="${p}:desc"
+          placeholder="Що бачать гравці, коли заходять">${esc(it.desc || '')}</textarea></label>
+      ${it.desc && !host ? `<div class="cs" style="margin-top:3px">${esc(it.desc)}</div>` : ''}
       <div style="margin-top:5px">${host
         ? `<button class="linkbtn" data-goto="${esc(host.id)}">→ ${esc(host.name)}</button>`
         : `<span class="empty">не призначено</span>`}</div>

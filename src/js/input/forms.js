@@ -8,8 +8,8 @@
  */
 
 import { sel, setSel, byId, mark, scene, conn, token } from '../core/state.js';
-import { locs, slots, mkLoc } from '../core/locations.js';
-import { clearSlot, place } from '../core/registries.js';
+import { locs, mkLoc } from '../core/locations.js';
+import { place } from '../core/registries.js';
 import { setPath } from '../core/paths.js';
 import { mkToken, newDanger, newBlock, newEvent } from '../core/model.js';
 import { TPL_DANGER, TPL_BLOCK, TPL_TREASURE, TPL_EVENT, TPL_CONN } from '../core/templates.js';
@@ -46,7 +46,6 @@ function onChange(ev){
   if (el.hasAttribute('data-fire')) return fireEvent(el);
   if (el.hasAttribute('data-path')) return changePath(el);
   if (el.hasAttribute('data-setitem')) return setRegistryItemScene(el);
-  if (el.hasAttribute('data-slot')) return setRoomSlot(el);
   if (el.hasAttribute('data-movetok')) return moveToken(el);
   if (el.hasAttribute('data-boss-tpl')) return spawnBoss(el);
   if (el.hasAttribute('data-tpl')) return applyTemplate(el);
@@ -92,23 +91,6 @@ function fireEvent(el){
 function setRegistryItemScene(el){
   const [regId, itemId] = el.getAttribute('data-setitem').split(':');
   place(regId, itemId, el.value);
-  renderAll();
-}
-
-/** Scene form: assign a registry item to this particular room. */
-function setRoomSlot(el){
-  const [sceneId, locId, regId] = el.getAttribute('data-slot').split(':');
-  const s = scene(sceneId);
-  const l = s && byId(locs(s), locId);
-  if (!l) return;
-
-  if (el.value){
-    clearSlot(regId, el.value, locId);   // one item, one room, board-wide
-    slots(l)[regId] = el.value;
-  } else {
-    delete slots(l)[regId];
-  }
-  mark();
   renderAll();
 }
 

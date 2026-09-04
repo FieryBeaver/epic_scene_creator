@@ -80,6 +80,7 @@ export function deserialize(raw){
 
   board.scenes = raw.scenes.map(s => readScene(s, uid));
   relinkLegacyBlocks(board.scenes);
+  foldRegistryRooms(board.scenes, board.registries, uid);
 
   const known = new Set(board.scenes.map(s => s.id));
   board.connections = (raw.connections || [])
@@ -114,6 +115,7 @@ function readRegistries(list, uid){
       nm: str(it.nm),
       sym: str(it.sym),
       note: str(it.note),
+      desc: str(it.desc),      // v4: the description of the room this item is
     })),
   }));
 }
@@ -234,6 +236,67 @@ function relinkLegacyBlocks(scenes){
       delete l._oldBlock;
     });
   });
+}
+
+/**
+ * v3 → v4: make every registry item a room of its own.
+ *
+ * v3 let a room hold one entry per registry, so a single room could be a
+ * tomb *and* a key *and* a treasure vault, and every room in the form showed
+ * a dropdown for every list whether or not it had anything to do with it.
+ * A tomb is a room; that is all it is.
+ *
+ * Three things to put right in an old file:
+ *   - a room carrying several registry entries becomes several rooms;
+ *   - a description written on such a room moves onto the list item, which is
+ *     where v4 keeps it;
+ *   - an item that somehow ended up in two rooms stays in the first, since
+ *     the whole point of a list is that each entry is somewhere definite.
+ */
+function foldRegistryRooms(scenes, registries, uid){
+  const itemsById = new Map();
+  registries.forEach(r => r.items.forEach(it => itemsById.set(r.id + '/' + it.id, it)));
+  const placed = new Set();
+
+  scenes.forEach(scene => {
+    const extra = [];
+
+    scene.locations.forEach(room => {
+      const entries = Object.entries(room.reg || {})
+        .filter(([regId, itemId]) => itemId && itemsById.has(regId + '/' + itemId));
+
+      // Drop a duplicate placement rather than showing the same tomb twice.
+      const fresh = entries.filter(([regId, itemId]) => {
+        const key = regId + '/' + itemId;
+        if (placed.has(key)) return false;
+        placed.add(key);
+        return true;
+      });
+
+      room.reg = {};
+      if (!fresh.length) return;
+
+      const [[keepReg, keepItem], ...rest] = fresh;
+      room.reg = { [keepReg]: keepItem };
+      moveDescription(room, itemsById.get(keepReg + '/' + keepItem));
+
+      // Everything else this room used to be becomes a room next to it.
+      rest.forEach(([regId, itemId]) => {
+        extra.push({
+          id: uid('l'), nm: '', notes: '', reg: { [regId]: itemId },
+          hasTre: false, tre: '', guard: '', taken: false, links: [],
+        });
+      });
+    });
+
+    scene.locations.push(...extra);
+  });
+}
+
+function moveDescription(room, item){
+  if (!item || !room.notes) return;
+  if (!item.desc) item.desc = room.notes;
+  room.notes = '';
 }
 
 function readConn(c, uid){

@@ -8,7 +8,7 @@
 
 import { scene, conn, regs, byId } from '../../core/state.js';
 import { connsOf, owedBy, tokensAt, blockOnLoc, blockTargetLabel } from '../../core/model.js';
-import { locs, isTreasure, locName, locIcon, locColor, slotList } from '../../core/locations.js';
+import { locs, isTreasure, locName, locIcon, locColor, slotList, locDesc } from '../../core/locations.js';
 import { itemsIn } from '../../core/registries.js';
 import { TOKTYPE } from '../../core/constants.js';
 import { esc, safeColor } from '../../util/html.js';
@@ -85,7 +85,7 @@ function rooms(s, owed){
       <div class="n" style="color:${safeColor(locColor(l))}">${esc(locIcon(l))} ${esc(locName(l))}`
       + `${isTreasure(l) && l.taken ? ' <span class="tag">забрано</span>' : ''}`
       + `${extras.map(x => ` <span class="tag">${esc(x.r.one || x.r.nm)} ${esc(x.it.nm)}</span>`).join('')}</div>
-      ${l.notes ? `<div class="w">${esc(l.notes)}</div>` : ''}
+      ${locDesc(l) ? `<div class="w">${esc(locDesc(l))}</div>` : ''}
       ${isTreasure(l) && l.tre ? `<div class="k"><b>Скарб:</b> ${esc(l.tre)}</div>` : ''}
       ${isTreasure(l) && l.guard ? `<div class="k"><b>Захисник:</b> ${esc(l.guard)}</div>` : ''}
       ${block ? `<div class="k"><b>Перекрита:</b> ${esc(block.nm)}${block.done ? ' (вирішено)' : ''}`

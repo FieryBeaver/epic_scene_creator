@@ -8,7 +8,7 @@
 import { sel, setSel } from '../core/state.js';
 import { renderBoard } from './board.js';
 import { renderInsp } from './inspector/index.js';
-import { renderRail, renderPaneScenes, renderTabs } from './rail.js';
+import { renderRail, renderPaneScenes, renderTabs, refreshRegPanes } from './rail.js';
 
 export function renderAll(){
   renderBoard();
@@ -24,7 +24,8 @@ export function renderAll(){
 export function renderLive(){
   renderBoard();
   renderPaneScenes();
-  renderTabs();     // a list being renamed should retitle its own tab as you type
+  renderTabs();          // a list being renamed should retitle its own tab as you type
+  refreshRegPanes();     // a room's description is also the list item's
 }
 
 /**

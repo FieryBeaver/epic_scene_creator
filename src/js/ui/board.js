@@ -6,7 +6,7 @@
 
 import { S, sel } from '../core/state.js';
 import { neighborsOf, owedBy, tokensAt } from '../core/model.js';
-import { locs, isTreasure, locName, locIcon, locColor } from '../core/locations.js';
+import { locs, isTreasure, locName, locIcon, locColor, locDesc } from '../core/locations.js';
 import { TOKTYPE, dangerColor } from '../core/constants.js';
 import { esc, safeColor } from '../util/html.js';
 import { el } from '../util/dom.js';
@@ -83,7 +83,7 @@ function nodeMarkup(s){
       // it without the DM having to open the scene.
       const answers = owed.filter(o => o.it.srcLoc === l.id);
       const tip = [
-        l.notes || 'кімната',
+        locDesc(l) || 'кімната',
         ...answers.map(o => `↩ рішення для «${o.it.nm}» (${o.from.name})`),
       ].join(' · ');
       return `<span class="chip" style="color:${col};border-color:${col}55;background:${col}14"`

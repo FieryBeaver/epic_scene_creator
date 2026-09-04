@@ -4,7 +4,7 @@
 plain JSON, hand-editable, and diffable in git — a campaign's board can live
 in a repository alongside its notes.
 
-Current format: `version: 3`. The reader accepts older files and migrates
+Current format: `version: 4`. The reader accepts older files and migrates
 them; see *Migration* at the end.
 
 ## Top level
@@ -117,7 +117,7 @@ Checking *спрацював* applies the effect immediately: the named connecti
 {
   "id": "l1", "nm": "Обеліск Ацерерака",   // "" → derived from registry/treasure
   "notes": "",
-  "reg": { "gods": "moa" },       // registryId → itemId
+  "reg": { "gods": "moa" },       // registryId → itemId; at most one entry
   "hasTre": true,
   "tre": "8 000 gp + код",        // contents
   "guard": "Невидимий бехолдер.", // what makes taking it interesting
@@ -126,7 +126,12 @@ Checking *спрацював* applies the effect immediately: the named connecti
 }
 ```
 
-An empty room — no name, notes, treasure, links or registry slots — is dropped
+A room holds **at most one** registry entry, and a room that has one *is* that
+thing: the tomb of Moa is a room, not a cupboard with a tomb in it. Its name
+and description come from the list item (`nm` overrides the derived name), so
+`notes` stays empty on such rooms.
+
+An empty room — no name, notes, treasure, links or registry entry — is dropped
 automatically. Only `http:`, `https:` and `mailto:` links survive a read.
 
 ## Connection
@@ -173,7 +178,10 @@ board. Two exist by default; the DM can add more.
   "nm": "Гробниці богів",         // list name, and its rail tab
   "one": "Гробниця",              // singular, used to name a room
   "sym": "⛩", "color": "#54BE9B",
-  "items": [ { "id": "moa", "nm": "Моа", "sym": "", "note": "якулі" } ]
+  "items": [ {
+    "id": "moa", "nm": "Моа", "sym": "", "note": "якулі",
+    "desc": "Кругла зала, стеля тримається на кістках."   // the room's description
+  } ]
 }
 ```
 
@@ -236,6 +244,19 @@ Pre-v3 files are read and converted:
 | `scene.treasures[]` | rooms with `hasTre: true`, `tre`, `guard`, `taken` |
 | `block.tgtKind: "treasure" \| "god" \| "скарб" \| "гробницю" \| …` | `"loc"`, re-pointed at the room the old target became |
 | `treasure.block` | sets that block's target to this room |
+
+### v3 → v4
+
+v3 let one room carry an entry per list, so a room could be a tomb *and* a key
+*and* a treasure vault, and every room in the form showed a dropdown for every
+list. v4 makes a list item a room in its own right.
+
+| Old | New |
+|---|---|
+| a room with several `reg` entries | one room per entry, side by side in the same scene |
+| `location.notes` on a room that is a list item | moved to that item's `desc`, and cleared on the room |
+| the same item placed in two rooms | kept in the first; the whole point of a list is one definite place |
+| a `reg` entry naming an item that no longer exists | dropped |
 
 The migration is covered by tests in `test/serialize.test.mjs`; add a case
 there before changing it.

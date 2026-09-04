@@ -17,7 +17,12 @@ export function isTreasure(l){
   return !!l.hasTre;
 }
 
-/** Registry slots of a room: `{registryId: itemId}`. */
+/**
+ * The registry entry of a room: `{registryId: itemId}`.
+ *
+ * At most one. A tomb or a skeleton key *is* a room, rather than something
+ * kept inside one — so a room is either a plain room or that one thing.
+ */
 export function slots(l){
   return l.reg || (l.reg = {});
 }
@@ -72,4 +77,28 @@ export function locColor(l){
 
 export function locLinks(l){
   return l.links || (l.links = []);
+}
+
+/** `{r, it}` when this room *is* a registry item, else null. */
+export function regRoom(l){
+  return slotList(l)[0] || null;
+}
+
+/**
+ * The room's description.
+ *
+ * For a registry room it lives on the list item, so all nine tombs can be
+ * written in one place before any of them is placed; `notes` stays the
+ * fallback for boards written before that was true.
+ */
+export function locDesc(l){
+  const owner = regRoom(l);
+  if (owner) return owner.it.desc || l.notes || '';
+  return l.notes || '';
+}
+
+/** Where an edit to that description should be written. */
+export function locDescPath(l, roomPath){
+  const owner = regRoom(l);
+  return owner ? `r:${owner.r.id}:items:${owner.it.id}:desc` : `${roomPath}:notes`;
 }
