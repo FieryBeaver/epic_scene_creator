@@ -8,13 +8,15 @@
 
 import { scene, conn, regs, byId } from '../../core/state.js';
 import { connsOf, owedBy, tokensAt, blockOnLoc, blockTargetLabel } from '../../core/model.js';
-import { locs, isTreasure, locName, locIcon, locColor, slotList, locDesc } from '../../core/locations.js';
+import { locs, isTreasure, locName, locIcon, locColor, slotList, locDesc, locLinks }
+  from '../../core/locations.js';
 import { itemsIn } from '../../core/registries.js';
 import { tokenTypeColor } from '../../core/constants.js';
 import { t } from '../../i18n/index.js';
 import { esc, safeColor } from '../../util/html.js';
 import { SIDE_SYM, sideLabel } from '../../util/geometry.js';
 import { srcRef, owedLoc, lvlDots, ctrRow, renderLinks } from './shared.js';
+import { isRoomOpen } from './folds.js';
 
 export function readScene(s){
   if (!s) return '';
@@ -72,34 +74,63 @@ function exits(s){
   return h + `</div></div>`;
 }
 
+/**
+ * Rooms, folded shut — the same accordion as the edit form, sharing its open
+ * state so a room opened in one mode is still open in the other.
+ *
+ * At the table a scene is read one room at a time; six of them unrolled at
+ * once pushes the dangers and the passages off the screen. The header carries
+ * the name and a badge for anything worth knowing before opening it.
+ */
 function rooms(s, owed){
   if (!locs(s).length) return '';
   let h = `<div class="rd"><h4>${esc(t('view.rooms'))} <span>${locs(s).length}</span></h4>`;
-
-  locs(s).forEach(l => {
-    const block = blockOnLoc(s, l.id);
-    const extras = slotList(l).slice(1);
-    const answers = owed.filter(o => o.it.srcLoc === l.id);
-    const kind = slotList(l).length ? 'o' : isTreasure(l) ? 't' : 'l';
-
-    h += `<div class="rdi ${kind} ${isTreasure(l) && l.taken ? 'off' : ''}" data-room-id="${esc(l.id)}">
-      <div class="n" style="color:${safeColor(locColor(l))}">${esc(locIcon(l))} ${esc(locName(l))}`
-      + `${isTreasure(l) && l.taken ? ` <span class="tag">${esc(t('view.taken'))}</span>` : ''}`
-      + `${extras.map(x => ` <span class="tag">${esc(x.r.one || x.r.nm)} ${esc(x.it.nm)}</span>`).join('')}</div>
-      ${locDesc(l) ? `<div class="w">${esc(locDesc(l))}</div>` : ''}
-      ${isTreasure(l) && l.tre ? `<div class="k"><b>${esc(t('view.treasure'))}</b> ${esc(l.tre)}</div>` : ''}
-      ${isTreasure(l) && l.guard ? `<div class="k"><b>${esc(t('view.guard'))}</b> ${esc(l.guard)}</div>` : ''}
-      ${block ? `<div class="k"><b>${esc(t('view.covered'))}</b> ${esc(block.nm)}`
-        + `${block.done ? esc(t('room.solvedSuffix')) : ''}`
-        + `${block.src && scene(block.src) ? esc(t('view.keyAt')) + srcRef(block) : ''}</div>` : ''}
-      ${renderLinks(l)}
-      ${answers.length ? `<div class="k"><b>${esc(t('view.answersFor'))}</b> ${answers.map(o =>
-        `${esc(o.it.nm)} (<button class="linkbtn" data-goto="${esc(o.from.id)}">`
-        + `${esc(o.from.name)}</button>)`).join(', ')}</div>` : ''}
-    </div>`;
-  });
-
+  h += locs(s).map(l => readRoom(s, l, owed)).join('');
   return h + `</div>`;
+}
+
+function readRoom(s, l, owed){
+  const open = isRoomOpen(l.id);
+  const block = blockOnLoc(s, l.id);
+  const answers = owed.filter(o => o.it.srcLoc === l.id);
+  const kind = slotList(l).length ? 'o' : isTreasure(l) ? 't' : 'l';
+  const spent = isTreasure(l) && l.taken;
+
+  const badges = [
+    isTreasure(l) ? `<span class="rb tre" title="${esc(spent ? t('room.takenTip') : t('room.hasTreasureTip'))}">
+      ◈${spent ? '✓' : ''}</span>` : '',
+    block ? `<span class="rb blk" title="${esc(t('room.blockedBy', { name: block.nm }))}">⛔</span>` : '',
+    answers.length ? `<span class="rb owe" title="${esc(t('room.answersTip'))}">↩</span>` : '',
+    locLinks(l).filter(k => k.url).length ? `<span class="rb lnk" title="${esc(t('room.hasLinks'))}">🔗</span>` : '',
+  ].join('');
+
+  const body = `${locDesc(l) ? `<div class="w">${esc(locDesc(l))}</div>` : ''}
+    ${isTreasure(l) && l.tre ? `<div class="k"><b>${esc(t('view.treasure'))}</b> ${esc(l.tre)}</div>` : ''}
+    ${isTreasure(l) && l.guard ? `<div class="k"><b>${esc(t('view.guard'))}</b> ${esc(l.guard)}</div>` : ''}
+    ${block ? `<div class="k"><b>${esc(t('view.covered'))}</b> ${esc(block.nm)}`
+      + `${block.done ? esc(t('room.solvedSuffix')) : ''}`
+      + `${block.src && scene(block.src) ? esc(t('view.keyAt')) + srcRef(block) : ''}</div>` : ''}
+    ${renderLinks(l)}
+    ${answers.length ? `<div class="k"><b>${esc(t('view.answersFor'))}</b> ${answers.map(o =>
+      `${esc(o.it.nm)} (<button class="linkbtn" data-goto="${esc(o.from.id)}">`
+      + `${esc(o.from.name)}</button>)`).join(', ')}</div>` : ''}`;
+
+  // A room with nothing recorded has nothing behind the click, so it is a
+  // plain line rather than an accordion that opens onto emptiness.
+  const hasBody = !!body.trim();
+  const label = `<span class="n" style="color:${safeColor(locColor(l))}">`
+    + `${esc(locIcon(l))} ${esc(locName(l))}</span>`
+    + `${spent ? ` <span class="tag">${esc(t('view.taken'))}</span>` : ''}`
+    + `<span class="rbadges">${badges}</span>`;
+
+  return `<div class="rdroom rdi ${kind} ${spent ? 'off' : ''}${open && hasBody ? ' open' : ''}"
+      data-room-id="${esc(l.id)}">
+    ${hasBody
+      ? `<button class="rdroom-head" data-room-open="${esc(l.id)}" aria-expanded="${open}">
+          <span class="caret">${open ? '▾' : '▸'}</span>${label}</button>`
+      : `<div class="rdroom-head bare"><span class="caret"></span>${label}</div>`}
+    ${open && hasBody ? `<div class="rdroom-body">${body}</div>` : ''}
+  </div>`;
 }
 
 function dangers(s){

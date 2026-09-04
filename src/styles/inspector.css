@@ -76,12 +76,27 @@ fieldset,.rd{min-width:0}
 .isect-body>fieldset>legend{display:none}
 
 /* A room arrived at from a chip on the card, so it can be found in a long panel. */
-.item.loi.flash,.rdi.flash{
+.room.flash,.rdroom.flash,.rdi.flash{
   box-shadow:0 0 0 2px var(--jade);border-radius:5px;
 }
 @media (prefers-reduced-motion:no-preference){
-  .item.loi.flash,.rdi.flash{transition:box-shadow .2s}
+  .room.flash,.rdroom.flash,.rdi.flash{transition:box-shadow .2s}
 }
+
+/* ---------- rooms in view mode ---------- */
+/* The same accordion as the edit form: at the table a scene is read one room
+   at a time, and six unrolled at once push the dangers off the screen. */
+.rdroom{padding:0 0 0 8px}
+.rdroom-head{display:flex;align-items:center;gap:7px;width:100%;text-align:left;
+  background:none;border:0;padding:3px 6px 3px 0;color:var(--bone);font-size:13px}
+.rdroom-head:hover{background:#ffffff08}
+.rdroom-head.bare{cursor:default}
+.rdroom-head.bare:hover{background:none}
+.rdroom-head .caret{color:var(--dim);font-size:10px;flex:0 0 9px}
+.rdroom-head .n{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rdroom-head .rbadges{display:flex;gap:3px;flex:0 0 auto}
+.rdroom-head .tag{flex:0 0 auto}
+.rdroom-body{padding:1px 6px 5px 16px}
 
 /* ---------- rooms as accordions ---------- */
 /* A scene can hold half a dozen rooms, each with a description, treasure,

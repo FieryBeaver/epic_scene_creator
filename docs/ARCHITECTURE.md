@@ -124,11 +124,15 @@ once on pointerup.
   clear) lives in the menu, what is constant does not.
 - **Bulk actions appear with a selection** and next to it, rather than sitting
   disabled the rest of the time.
-- **Rooms are accordions too.** A scene can hold half a dozen, each with a
-  description, treasure, links and cross-references. The header carries the
-  name and one badge per thing worth knowing; the body waits to be asked for.
-  Their open state is session-only — room ids are per board and there can be
-  hundreds, so persisting every one ever opened would grow without bound.
+- **Rooms are accordions too**, in both modes and sharing one open state, so
+  switching mode does not fold up what you just opened. A scene can hold half
+  a dozen rooms, each with a description, treasure, links and
+  cross-references; unrolled at once they push the dangers and passages off
+  the screen, which at the table is the wrong half to lose. The header carries
+  the name and one badge per thing worth knowing. In view mode a room with
+  nothing recorded is a plain line rather than an accordion opening onto
+  emptiness. Open state is session-only — room ids are per board and there can
+  be hundreds, so persisting every one ever opened would grow without bound.
 - **A room in a list is one thing.** It used to show an identity chip *and* a
   separate name box *and* a description labelled as coming from elsewhere,
   which read as two objects stapled together. Now: one name (which is the
