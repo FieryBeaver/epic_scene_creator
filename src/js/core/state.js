@@ -44,6 +44,27 @@ export function setSel(next){
   sel = next;
 }
 
+/**
+ * Scenes picked out for moving, duplicating or deleting together.
+ *
+ * Deliberately separate from `sel`: the inspector edits exactly one thing,
+ * while the board manipulates any number. Clicking a scene does both.
+ */
+export let marked = new Set();
+
+export function setMarked(ids){
+  marked = new Set(ids || []);
+}
+
+export function isMarked(id){
+  return marked.has(id);
+}
+
+export function toggleMarked(id){
+  if (marked.has(id)) marked.delete(id);
+  else marked.add(id);
+}
+
 /** 'edit' — the DM builds the board. 'view' — read-only briefing at the table. */
 export let mode = 'edit';
 

@@ -12,6 +12,7 @@
 #edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
 #edges *{pointer-events:none}
 #edges .hit{pointer-events:stroke;stroke:transparent;stroke-width:18;fill:none;cursor:pointer}
+#edges path{fill:none}
 #edges .wire{fill:none;stroke:#54685C;stroke-width:2.2}
 #edges .wire.oneway{stroke-dasharray:9 5}
 #edges .wire.shut{stroke:#7A4B45;stroke-dasharray:3 6}
@@ -42,7 +43,15 @@
 .node.sel{border-color:var(--ochre);box-shadow:0 0 0 1px var(--ochre),0 8px 22px #0009}
 .node.dim{opacity:.35}
 .node.hl{box-shadow:0 0 0 2px var(--jade),0 8px 22px #0009}
-.node .head{padding:7px 9px 6px;cursor:grab;border-bottom:1px solid #ffffff10}
+.node.marked{outline:2px dashed var(--ochre);outline-offset:2px}
+.node .head{padding:7px 9px 6px 24px;cursor:grab;border-bottom:1px solid #ffffff10;position:relative}
+.node .fold{position:absolute;left:5px;top:6px;width:15px;height:15px;padding:0;line-height:1;
+  background:none;border:0;color:var(--dim);font-size:11px}
+.node .fold:hover{color:var(--jade)}
+.node.folded{width:236px}
+.node.folded .head{border-bottom:0}
+.fold-sum{display:flex;gap:8px;padding:0 9px 7px 24px;font-size:11px;color:var(--dim);
+  font-variant-numeric:tabular-nums}
 .node .head:active{cursor:grabbing}
 .node .nm{font-family:var(--serif);font-size:14.5px;font-weight:600;line-height:1.25}
 .node .dm{font-size:11px;color:var(--dim);margin-top:1px}
@@ -58,3 +67,16 @@
 .tok:active{cursor:grabbing}
 .tok .dot{width:7px;height:7px;border-radius:50%;background:var(--tc,#888)}
 .tok.ghost{position:fixed;z-index:999;pointer-events:none;box-shadow:0 4px 14px #000a}
+
+/* ---------- minimap ---------- */
+#minimap{position:absolute;right:12px;bottom:12px;width:200px;height:136px;
+  background:#141A17E6;border:1px solid var(--line);border-radius:var(--r);
+  padding:4px;backdrop-filter:blur(3px);box-shadow:0 6px 18px #0007}
+#minimap[hidden]{display:none}
+#minimapCanvas{display:block;width:100%;height:100%;cursor:pointer;touch-action:none}
+@media(max-width:900px){#minimap{display:none}}
+
+/* ---------- marquee ---------- */
+#marquee{position:absolute;border:1px solid var(--ochre);background:#D08A3422;
+  pointer-events:none;z-index:20;border-radius:2px}
+#marquee[hidden]{display:none}

@@ -45,6 +45,52 @@ export function edgePoint(a, b){
   return { x: a.x + dx * t, y: a.y + dy * t };
 }
 
+/**
+ * Direction a wire should leave a box in.
+ *
+ * A pinned side wins. Otherwise the wire leaves along whichever axis the
+ * other node mostly lies on — the same rule React Flow and Blender use, and
+ * the reason their curves read as "out of the side and round" rather than as
+ * a diagonal smear.
+ */
+export function leaveDirection(side, from, to){
+  if (SIDE_VEC[side]) return SIDE_VEC[side];
+  const dx = to.x - from.x, dy = to.y - from.y;
+  if (Math.abs(dx) >= Math.abs(dy)) return [Math.sign(dx) || 1, 0];
+  return [0, Math.sign(dy) || 1];
+}
+
+/**
+ * Cubic control points for a wire from `p` to `q`.
+ *
+ * The handles reach out along each end's own direction, by a length that
+ * grows with the gap but is clamped: short hops stay nearly straight, long
+ * ones bow without looping back on themselves.
+ */
+export function curveHandles(p, q, dirP, dirQ){
+  const span = Math.hypot(q.x - p.x, q.y - p.y);
+  const reach = Math.min(160, Math.max(28, span * 0.38));
+  return [
+    { x: p.x + dirP[0] * reach, y: p.y + dirP[1] * reach },
+    { x: q.x + dirQ[0] * reach, y: q.y + dirQ[1] * reach },
+  ];
+}
+
+/** The SVG path for that curve. */
+export function curvePath(p, c1, c2, q){
+  return `M${r(p.x)},${r(p.y)} C${r(c1.x)},${r(c1.y)} ${r(c2.x)},${r(c2.y)} ${r(q.x)},${r(q.y)}`;
+}
+
+/** Midpoint of the cubic, where its label belongs. */
+export function curveMid(p, c1, c2, q){
+  return {
+    x: (p.x + 3 * c1.x + 3 * c2.x + q.x) / 8,
+    y: (p.y + 3 * c1.y + 3 * c2.y + q.y) / 8,
+  };
+}
+
+const r = n => Math.round(n * 10) / 10;
+
 /** Offset a segment sideways, so parallel connections do not overlap. */
 export function offsetSegment(p, q, distance){
   const dx = q.x - p.x, dy = q.y - p.y;

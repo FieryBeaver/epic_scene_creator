@@ -10,7 +10,8 @@ import { S, sel, scene } from '../core/state.js';
 import { siblings, tokensAt } from '../core/model.js';
 import { TOKTYPE } from '../core/constants.js';
 import { esc, safeColor } from '../util/html.js';
-import { SIDE_VEC, SIDE_SYM, edgeAt, edgePoint, offsetSegment } from '../util/geometry.js';
+import { SIDE_VEC, SIDE_SYM, edgeAt, edgePoint, offsetSegment,
+  leaveDirection, curveHandles, curvePath, curveMid } from '../util/geometry.js';
 import { nodeSize } from './nodes.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -47,7 +48,14 @@ function connMid(c){
     if (!SIDE_VEC[c.toSide])   q = { x: q.x + n.x, y: q.y + n.y };
   }
 
-  return { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2, p, q };
+  // Curved rather than straight: with a dozen scenes and passages crossing
+  // between them, a straight line is the hardest of the options to follow.
+  const dirP = leaveDirection(c.fromSide, p, q);
+  const dirQ = leaveDirection(c.toSide, q, p);
+  const [c1, c2] = curveHandles(p, q, dirP, dirQ);
+  const mid = curveMid(p, c1, c2, q);
+
+  return { x: mid.x, y: mid.y, p, q, d: curvePath(p, c1, c2, q) };
 }
 
 /** Arrow glyphs describing which sides a connection is pinned to. */
@@ -75,7 +83,7 @@ export function drawEdges(svg, world){
     const hl = highlight && (c.from === highlight || c.to === highlight);
     const isSel = sel && sel.kind === 'conn' && sel.id === c.id;
 
-    const line = document.createElementNS(SVG_NS, 'line');
+    const line = document.createElementNS(SVG_NS, 'path');
     setEnds(line, m);
     line.setAttribute('class', 'wire'
       + (c.dir === 'one' ? ' oneway' : '')
@@ -86,7 +94,7 @@ export function drawEdges(svg, world){
     svg.appendChild(line);
 
     // A fat transparent copy: the visible wire is too thin to click.
-    const hit = document.createElementNS(SVG_NS, 'line');
+    const hit = document.createElementNS(SVG_NS, 'path');
     setEnds(hit, m);
     hit.setAttribute('class', 'hit');
     hit.dataset.conn = c.id;
@@ -99,8 +107,7 @@ export function drawEdges(svg, world){
 }
 
 function setEnds(node, m){
-  node.setAttribute('x1', m.p.x); node.setAttribute('y1', m.p.y);
-  node.setAttribute('x2', m.q.x); node.setAttribute('y2', m.q.y);
+  node.setAttribute('d', m.d);
 }
 
 function renderEdgeLabels(world){

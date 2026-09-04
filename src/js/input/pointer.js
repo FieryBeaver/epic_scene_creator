@@ -7,10 +7,10 @@
  * of a full rebuild.
  */
 
-import { mode, mark, scene, token } from '../core/state.js';
+import { S, mode, mark, scene, token, marked, setMarked, toggleMarked } from '../core/state.js';
 import { newConn } from '../core/model.js';
 import { toast, el } from '../util/dom.js';
-import { NODE_W, nodeEl } from '../ui/nodes.js';
+import { NODE_W, nodeEl, nodeSize } from '../ui/nodes.js';
 import { cam, applyCam, screenToWorld, setZoom, ZOOM_MIN, ZOOM_MAX } from '../ui/camera.js';
 import { moveEdgesOf } from '../ui/edges.js';
 import { renderAll, select } from '../ui/render.js';
@@ -46,19 +46,44 @@ function onDown(wrap, ev){
   }
 
   if (tokEl && startTokenDrag(wrap, tokEl, ev)) return;
-  if (head && nodeE && startNodeDrag(wrap, nodeE, ev)) return;
+  if (head && nodeE && !ev.target.closest('[data-fold]')
+      && startNodeDrag(wrap, nodeE, ev)) return;
 
   // Interactive furniture inside cards and labels handles its own clicks.
-  if (ev.target.closest('[data-ctr], .mini, .ctr, .elabel, #hud, [data-conn]')) return;
+  if (ev.target.closest('[data-ctr], .mini, .ctr, .elabel, #hud, #minimap, [data-conn]')) return;
 
   if (nodeE){
-    select('scene', nodeE.dataset.scene);
+    pickScene(nodeE.dataset.scene, ev);
     return;
+  }
+
+  // Shift on empty board draws a selection box; a plain drag still pans.
+  // That split is React Flow's default and the one people arrive expecting.
+  if (ev.shiftKey && mode !== 'view'){
+    startMarquee(wrap, ev);
+    return;
+  }
+
+  if (!ev.shiftKey && marked.size){
+    setMarked([]);
+    renderAll();
   }
 
   drag = { kind: 'pan', sx: ev.clientX, sy: ev.clientY, cx: cam.x, cy: cam.y, moved: false };
   wrap.classList.add('panning');
   wrap.setPointerCapture(ev.pointerId);
+}
+
+/** Click on a card: shift/ctrl adds to the group, a plain click replaces it. */
+function pickScene(id, ev){
+  if ((ev.shiftKey || ev.ctrlKey || ev.metaKey) && mode !== 'view'){
+    toggleMarked(id);
+    select('scene', id);
+    renderAll();
+    return;
+  }
+  setMarked([id]);
+  select('scene', id);
 }
 
 function handleLinkClick(nodeE, ev){
@@ -104,21 +129,63 @@ function startNodeDrag(wrap, nodeE, ev){
   const s = scene(nodeE.dataset.scene);
   if (!s) return false;
 
+  // Dragging one of a marked group moves the whole group; dragging anything
+  // else drops the group first, so a stray drag cannot scatter the board.
+  const group = marked.has(s.id) && marked.size > 1;
+  if (!group) setMarked([s.id]);
+
   select('scene', s.id);
-  // select() rebuilds the board, so re-read the element we are about to move.
-  const element = nodeEl(s.id) || nodeE;
+  renderAll();
+
   const w0 = screenToWorld(ev.clientX, ev.clientY);
+  const ids = group ? [...marked].filter(id => scene(id)) : [s.id];
+  const movers = ids.map(id => {
+    const target = scene(id);
+    const element = nodeEl(id);
+    if (element) element.style.willChange = 'transform';
+    return { id, el: element, ox: target.x, oy: target.y };
+  }).filter(m => m.el);
 
   drag = {
-    kind: 'node', id: s.id, el: element,
+    kind: 'node', id: s.id, movers,
     dx: w0.x - s.x, dy: w0.y - s.y,
-    ox: s.x, oy: s.y,
     moved: false, raf: 0,
   };
-  element.style.willChange = 'transform';
   wrap.setPointerCapture(ev.pointerId);
   ev.preventDefault();
   return true;
+}
+
+function startMarquee(wrap, ev){
+  const box = el('marquee');
+  box.hidden = false;
+  const r = wrap.getBoundingClientRect();
+  drag = {
+    kind: 'marquee', box, rect: r,
+    sx: ev.clientX - r.left, sy: ev.clientY - r.top,
+    add: ev.ctrlKey || ev.metaKey ? new Set(marked) : new Set(),
+  };
+  drawMarquee(drag, drag.sx, drag.sy);
+  wrap.setPointerCapture(ev.pointerId);
+  ev.preventDefault();
+}
+
+function drawMarquee(d, x, y){
+  const left = Math.min(d.sx, x), top = Math.min(d.sy, y);
+  d.box.style.left = left + 'px';
+  d.box.style.top = top + 'px';
+  d.box.style.width = Math.abs(x - d.sx) + 'px';
+  d.box.style.height = Math.abs(y - d.sy) + 'px';
+}
+
+/** Every scene whose card overlaps the box, in world coordinates. */
+function insideMarquee(d, x, y){
+  const a = screenToWorld(d.rect.left + Math.min(d.sx, x), d.rect.top + Math.min(d.sy, y));
+  const b = screenToWorld(d.rect.left + Math.max(d.sx, x), d.rect.top + Math.max(d.sy, y));
+  return S.scenes.filter(s => {
+    const h = nodeSize(s.id).h;
+    return s.x < b.x && s.x + NODE_W > a.x && s.y < b.y && s.y + h > a.y;
+  }).map(s => s.id);
 }
 
 function onMove(ev){
@@ -140,6 +207,13 @@ function onMove(ev){
     return;
   }
 
+  if (drag.kind === 'marquee'){
+    const x = ev.clientX - drag.rect.left, y = ev.clientY - drag.rect.top;
+    drawMarquee(drag, x, y);
+    drag.hits = insideMarquee(drag, x, y);
+    return;
+  }
+
   if (drag.kind === 'token'){
     drag.ghost.style.left = ev.clientX + 8 + 'px';
     drag.ghost.style.top = ev.clientY + 8 + 'px';
@@ -149,13 +223,24 @@ function onMove(ev){
 function dragNodeFrame(){
   if (!drag || drag.kind !== 'node') return;
   drag.raf = 0;
-  const s = scene(drag.id);
-  if (!s) return;
+  const lead = scene(drag.id);
+  if (!lead) return;
+
+  // One delta, applied to everything being dragged, so the group keeps shape.
   const w = screenToWorld(drag.px, drag.py);
-  s.x = Math.round((w.x - drag.dx) / SNAP) * SNAP;
-  s.y = Math.round((w.y - drag.dy) / SNAP) * SNAP;
-  drag.el.style.transform = `translate(${s.x - drag.ox}px,${s.y - drag.oy}px)`;
-  moveEdgesOf(s.id);
+  const anchor = drag.movers.find(m => m.id === drag.id) || drag.movers[0];
+  const nx = Math.round((w.x - drag.dx) / SNAP) * SNAP;
+  const ny = Math.round((w.y - drag.dy) / SNAP) * SNAP;
+  const dx = nx - anchor.ox, dy = ny - anchor.oy;
+
+  drag.movers.forEach(m => {
+    const s = scene(m.id);
+    if (!s) return;
+    s.x = m.ox + dx;
+    s.y = m.oy + dy;
+    m.el.style.transform = `translate(${dx}px,${dy}px)`;
+    moveEdgesOf(m.id);
+  });
 }
 
 function onUp(wrap, ev){
@@ -166,16 +251,28 @@ function onUp(wrap, ev){
     return;
   }
 
+  if (drag.kind === 'marquee'){
+    drag.box.hidden = true;
+    const hits = drag.hits || [];
+    setMarked([...drag.add, ...hits]);
+    drag = null;
+    wrap.classList.remove('panning');
+    renderAll();
+    return;
+  }
+
   if (drag.kind === 'node'){
     if (drag.raf) cancelAnimationFrame(drag.raf);
-    const s = scene(drag.id);
-    drag.el.style.willChange = '';
-    drag.el.style.transform = '';
-    if (s){
-      drag.el.style.left = s.x + 'px';
-      drag.el.style.top = s.y + 'px';
-      moveEdgesOf(s.id);
-    }
+    drag.movers.forEach(m => {
+      const s = scene(m.id);
+      m.el.style.willChange = '';
+      m.el.style.transform = '';
+      if (s){
+        m.el.style.left = s.x + 'px';
+        m.el.style.top = s.y + 'px';
+        moveEdgesOf(m.id);
+      }
+    });
     if (drag.moved) mark();
   }
 
@@ -203,6 +300,7 @@ function dropToken(ev){
 
 function onCancel(wrap){
   if (drag && drag.ghost) drag.ghost.remove();
+  if (drag && drag.box) drag.box.hidden = true;
   if (drag && drag.kind === 'node' && drag.raf) cancelAnimationFrame(drag.raf);
   drag = null;
   wrap.classList.remove('panning');

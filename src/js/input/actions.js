@@ -78,6 +78,13 @@ function onClick(ev){
   if ((e = hit('data-additem'))){ addRegistryItem(e.getAttribute('data-additem')); return; }
   if ((e = hit('data-delitem'))){ delRegistryItem(e.getAttribute('data-delitem')); return; }
 
+  /* ---------- fold a card shut ---------- */
+  if ((e = hit('data-fold'))){
+    const s = scene(e.getAttribute('data-fold'));
+    if (s){ s.collapsed = !s.collapsed; mark(); renderAll(); }
+    return;
+  }
+
   /* ---------- node footer buttons ---------- */
   if ((e = hit('data-act'))){
     const action = e.getAttribute('data-act');

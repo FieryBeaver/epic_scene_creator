@@ -128,6 +128,7 @@ function readScene(s, uid){
     color: str(s.color, '#54685C'),
     x: int(s.x), y: int(s.y),
     notes: str(s.notes),
+    collapsed: !!s.collapsed,
 
     dangers: (s.dangers || []).map(x => ({
       id: str(x.id) || uid('d'),

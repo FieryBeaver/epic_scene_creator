@@ -16,6 +16,7 @@ import { initCamera, applyCam, cam, setCamera, fitAll } from './ui/camera.js';
 import { applyPanels, initPanels } from './ui/panels.js';
 import { renderAll, renderPreservingFocus } from './ui/render.js';
 import { initSyncPanel, renderStatus } from './ui/sync-panel.js';
+import { initMinimap } from './ui/minimap.js';
 import { toast } from './util/dom.js';
 import { initActions } from './input/actions.js';
 import { initForms } from './input/forms.js';
@@ -64,6 +65,7 @@ function restoreAutosave(){
 
 function start(){
   initCamera();
+  initMinimap();
   initPanels();
   initToolbar();
   initPointer();

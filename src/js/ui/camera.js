@@ -19,6 +19,14 @@ export const ZOOM_MAX = 2.2;
 let wrap, world, gridCanvas, zoomLabel;
 let gridRaf = 0;
 
+/** Anything that has to redraw when the viewport moves subscribes here. */
+const watchers = new Set();
+
+export function onCameraChange(fn){
+  watchers.add(fn);
+  return () => watchers.delete(fn);
+}
+
 export function initCamera(){
   wrap = el('boardWrap');
   world = el('world');
@@ -32,6 +40,13 @@ export function applyCam(){
   world.style.transform = `translate(${cam.x}px,${cam.y}px) scale(${cam.z})`;
   zoomLabel.textContent = Math.round(cam.z * 100) + '%';
   if (!gridRaf) gridRaf = requestAnimationFrame(() => { gridRaf = 0; drawGrid(); });
+  watchers.forEach(fn => fn());
+}
+
+/** The world rectangle currently on screen. */
+export function viewportRect(){
+  const r = wrap.getBoundingClientRect();
+  return { x: -cam.x / cam.z, y: -cam.y / cam.z, w: r.width / cam.z, h: r.height / cam.z };
 }
 
 export function drawGrid(){
@@ -69,7 +84,7 @@ export function viewCenter(){
   return screenToWorld(r.left + r.width / 2, r.top + r.height / 2);
 }
 
-function centerOn(x, y, z){
+export function centerOn(x, y, z){
   const r = wrap.getBoundingClientRect();
   if (z) cam.z = z;
   cam.x = r.width / 2 - x * cam.z;

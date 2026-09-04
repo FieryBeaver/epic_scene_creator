@@ -4,7 +4,7 @@
  * rooms it has and who is standing in it.
  */
 
-import { S, sel } from '../core/state.js';
+import { S, sel, marked } from '../core/state.js';
 import { neighborsOf, owedBy, tokensAt } from '../core/model.js';
 import { locs, isTreasure, locName, locIcon, locColor, locDesc } from '../core/locations.js';
 import { TOKTYPE, dangerColor } from '../core/constants.js';
@@ -12,6 +12,7 @@ import { esc, safeColor } from '../util/html.js';
 import { el } from '../util/dom.js';
 import { measureNodes } from './nodes.js';
 import { drawEdges } from './edges.js';
+import { scheduleDraw } from './minimap.js';
 
 export function renderBoard(){
   const world = el('world');
@@ -31,6 +32,8 @@ export function renderBoard(){
     node.style.left = s.x + 'px';
     node.style.top = s.y + 'px';
     if (sel && sel.kind === 'scene' && sel.id === s.id) node.classList.add('sel');
+    if (marked.size > 1 && marked.has(s.id)) node.classList.add('marked');
+    if (s.collapsed) node.classList.add('folded');
     if (neighbours && !neighbours.has(s.id) && sel.id !== s.id) node.classList.add('dim');
     node.innerHTML = nodeMarkup(s);
     frag.appendChild(node);
@@ -39,6 +42,21 @@ export function renderBoard(){
   world.appendChild(frag);
   measureNodes(world);
   drawEdges(svg, world);
+  scheduleDraw();
+}
+
+/** The chips that still matter when the card is folded shut. */
+function collapsedSummary(s){
+  const dangers = s.dangers.filter(x => x.active !== false).length;
+  const blocks = s.blocks.filter(x => !x.done).length;
+  const rooms = locs(s).length;
+  const toks = tokensAt('scene', s.id).length;
+  return `<div class="fold-sum">`
+    + `<span title="Активні небезпеки">☠ ${dangers}</span>`
+    + `<span title="Нерозв'язані блоки">⛔ ${blocks}</span>`
+    + `<span title="Кімнати">▣ ${rooms}</span>`
+    + (toks ? `<span title="Токени">◉ ${toks}</span>` : '')
+    + `</div>`;
 }
 
 function nodeMarkup(s){
@@ -50,9 +68,18 @@ function nodeMarkup(s){
   const toks = tokensAt('scene', s.id);
 
   let h = `<div class="head">`
+    + `<button class="fold" data-fold="${esc(s.id)}"`
+    + ` title="${s.collapsed ? 'Розгорнути' : 'Згорнути'} (c)"`
+    + ` aria-expanded="${s.collapsed ? 'false' : 'true'}">${s.collapsed ? '▸' : '▾'}</button>`
     + `<div class="nm">${esc(s.name)}</div>`
     + `<div class="dm">${s.dm ? 'ДМ: ' + esc(s.dm) : 'ДМ не вказано'}</div>`
-    + `</div><div class="body">`;
+    + `</div>`;
+
+  // Collapsed: the header and the counts, nothing else. Enough to read the
+  // shape of a big dungeon at one zoom level.
+  if (s.collapsed) return h + collapsedSummary(s);
+
+  h += `<div class="body">`;
 
   /* summary chips */
   const dgStyle = worstDanger

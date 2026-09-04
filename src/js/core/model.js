@@ -23,6 +23,7 @@ export function newScene(x, y, patch){
     color: SCENE_COLORS[n % SCENE_COLORS.length],
     x: x | 0, y: y | 0,
     notes: '',
+    collapsed: false,
     dangers: [], blocks: [], events: [], locations: [], counters: [],
   };
   Object.assign(s, patch || {});
@@ -58,6 +59,40 @@ export function mkToken(type, name, at){
   S.tokens.push(t);
   mark();
   return t;
+}
+
+/**
+ * Copy a scene, offset a little, with fresh ids throughout.
+ *
+ * Registry entries are deliberately *not* copied: a tomb is in exactly one
+ * room on the whole board, so duplicating the room that holds it must not
+ * claim to duplicate the tomb.
+ */
+export function duplicateScene(id, offset = 32){
+  const src = scene(id);
+  if (!src) return null;
+
+  const copy = JSON.parse(JSON.stringify(src));
+  copy.id = uid('s');
+  copy.name = src.name + ' (копія)';
+  copy.x = src.x + offset;
+  copy.y = src.y + offset;
+
+  copy.dangers.forEach(d => { d.id = uid('d'); });
+  copy.blocks.forEach(b => { b.id = uid('b'); b.tgt = ''; });
+  copy.events.forEach(e => { e.id = uid('e'); e.conn = ''; });
+  copy.counters.forEach(c => { c.id = uid('n'); });
+  copy.locations.forEach(l => {
+    l.id = uid('l');
+    l.reg = {};                       // the one thing that cannot be in two places
+    (l.links || []).forEach(k => { k.id = uid('k'); });
+  });
+  // Room targets pointed at the original's rooms; they no longer exist here.
+  copy.blocks.forEach(b => { if (b.tgtKind === 'loc') b.tgt = ''; });
+
+  S.scenes.push(copy);
+  mark();
+  return copy;
 }
 
 export function newDanger(){

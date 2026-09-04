@@ -51,7 +51,8 @@ Everything renders from state; nothing here decides what the state should be.
 | `board.js` | The scene cards. |
 | `edges.js` | The SVG wires, their fat invisible click targets, and the HTML labels riding on them. |
 | `nodes.js` | Node height cache (see *Measurement*, below). |
-| `camera.js` | Pan, zoom, the grid canvas, `fitAll`, `focusScene`. |
+| `camera.js` | Pan, zoom, the grid canvas, `fitAll`, `focusScene`. Publishes viewport changes so the minimap can follow without a cycle. |
+| `minimap.js` | Whole-board overview with a viewport marker; click or drag to travel. |
 | `rail.js` | The left tab strip and its panes, including one per registry. |
 | `inspector/` | The right panel: `scene.js`, `connection.js`, `token.js` for editing, `readonly.js` for view mode, `shared.js` for the fragments both use. |
 | `panels.js` | Side panel widths and collapse, stored on the board. |
@@ -108,6 +109,30 @@ A node drag would otherwise re-render 12 cards and 19 edges per frame. Instead
 the card is moved with a `transform`, and `moveEdgesOf()` updates only the
 wires touching it, straight through the DOM. The real `left`/`top` are written
 once on pointerup.
+
+## Borrowed from node editors
+
+The board is a node graph, so it follows the conventions people already have
+from React Flow, Blender's shader editor and the rest, rather than inventing
+its own:
+
+- **Curved wires.** Straight lines are the least readable option once a dozen
+  passages cross. Each end leaves along its own direction — the pinned side if
+  there is one, otherwise the dominant axis toward the other node — which is
+  the rule React Flow's bezier edges and Blender's noodles both use. Control
+  handle length scales with the gap and is clamped, so short hops stay
+  straight and long ones bow without curling back.
+- **Minimap.** The component every one of those editors ships, for the same
+  reason: past a dozen nodes the canvas alone stops answering "what else is
+  out there".
+- **Shift to box-select, plain drag to pan.** React Flow's default split, and
+  the one people arrive expecting. Selection is separate from the inspector's
+  single selection (`marked` vs `sel`) because the panel edits one thing while
+  the board manipulates many.
+- **Collapsing a node to its header**, as Blender does, so the shape of a big
+  dungeon can be read at one zoom level.
+- **Duplicate, nudge with the arrow keys, delete the selection** — table
+  stakes in every graph editor.
 
 ## Measurement
 
