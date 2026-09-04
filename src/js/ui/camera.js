@@ -27,10 +27,6 @@ export function initCamera(){
   window.addEventListener('resize', drawGrid);
 }
 
-export function boardRect(){
-  return wrap.getBoundingClientRect();
-}
-
 /** Push the camera into the DOM and schedule a grid repaint. */
 export function applyCam(){
   world.style.transform = `translate(${cam.x}px,${cam.y}px) scale(${cam.z})`;
@@ -73,7 +69,7 @@ export function viewCenter(){
   return screenToWorld(r.left + r.width / 2, r.top + r.height / 2);
 }
 
-export function centerOn(x, y, z){
+function centerOn(x, y, z){
   const r = wrap.getBoundingClientRect();
   if (z) cam.z = z;
   cam.x = r.width / 2 - x * cam.z;

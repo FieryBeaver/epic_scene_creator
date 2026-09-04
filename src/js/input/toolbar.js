@@ -94,7 +94,7 @@ function importBoard(ev){
 }
 
 /** Replace the board and bring the whole UI back in step with it. */
-export function installBoard(board, camera){
+function installBoard(board, camera){
   setBoard(board);
   setSel(null);
   clearDirty();

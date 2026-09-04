@@ -20,10 +20,6 @@ export function setTab(name){
   showTab();
 }
 
-export function getTab(){
-  return tab;
-}
-
 export function renderRail(){
   renderTabs();
   renderPaneScenes();
@@ -79,7 +75,7 @@ export function renderPaneScenes(){
 
 /* ---------- tokens ---------- */
 
-export function renderPaneTokens(){
+function renderPaneTokens(){
   let h = `<h3>Токени · ${S.tokens.length}</h3>
     <p class="hint">Боси, що прорвались крізь Ворота, розвідгрупи, союзники, партії гравців.</p>
     <div class="row eonly" style="margin-bottom:8px">

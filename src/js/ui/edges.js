@@ -19,7 +19,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const registry = new Map();
 
 /** Centre and size of a scene card in world coordinates. */
-export function anchor(id){
+function anchor(id){
   const s = scene(id);
   if (!s) return null;
   const size = nodeSize(id);
@@ -31,7 +31,7 @@ export function anchor(id){
  * otherwise the wire aims at the other node. Parallel connections between the
  * same pair are fanned out so they stay distinguishable.
  */
-export function connMid(c){
+function connMid(c){
   const A = anchor(c.from), B = anchor(c.to);
   if (!A || !B) return null;
 
@@ -51,7 +51,7 @@ export function connMid(c){
 }
 
 /** Arrow glyphs describing which sides a connection is pinned to. */
-export function sideMark(c){
+function sideMark(c){
   const a = SIDE_SYM[c.fromSide] || '', b = SIDE_SYM[c.toSide] || '';
   return (a || b) ? ` <span style="opacity:.7">${a}${a && b ? '·' : ''}${b}</span>` : '';
 }
@@ -103,7 +103,7 @@ function setEnds(node, m){
   node.setAttribute('x2', m.q.x); node.setAttribute('y2', m.q.y);
 }
 
-export function renderEdgeLabels(world){
+function renderEdgeLabels(world){
   world.querySelectorAll('.elabel').forEach(n => n.remove());
   const frag = document.createDocumentFragment();
 

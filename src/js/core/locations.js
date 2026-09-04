@@ -6,7 +6,7 @@
  * hold the tomb of a god, a skeleton key, or whatever list the DM invented.
  */
 
-import { S, uid, byId, regs } from './state.js';
+import { uid, byId, regs } from './state.js';
 
 /** Rooms of a scene, created lazily. */
 export function locs(s){
@@ -72,11 +72,4 @@ export function locColor(l){
 
 export function locLinks(l){
   return l.links || (l.links = []);
-}
-
-/** Every room on the board, with its scene. */
-export function allLocs(){
-  const out = [];
-  S.scenes.forEach(s => locs(s).forEach(l => out.push({ s, l })));
-  return out;
 }

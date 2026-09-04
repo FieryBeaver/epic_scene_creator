@@ -6,7 +6,7 @@
 
 import { scene, regs } from '../../core/state.js';
 import { connsOf, owedBy, tokensAt, blockTargets, blockOnLoc } from '../../core/model.js';
-import { locs, locName, locIcon, locLinks } from '../../core/locations.js';
+import { locs, locName, locLinks } from '../../core/locations.js';
 import { hostOf } from '../../core/registries.js';
 import { TOKTYPE, BLOCK_KINDS } from '../../core/constants.js';
 import { TPL_DANGER, TPL_BLOCK, TPL_TREASURE, TPL_EVENT } from '../../core/templates.js';

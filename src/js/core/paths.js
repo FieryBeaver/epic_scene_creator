@@ -50,9 +50,3 @@ export function setPath(path, value){
   mark();
   return true;
 }
-
-/** Read the value at a path. */
-export function getPath(path){
-  const r = resolve(path);
-  return r ? r.obj[r.key] : undefined;
-}

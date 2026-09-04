@@ -190,8 +190,3 @@ export function tokenHost(t){
   if (!t || !t.at) return null;
   return t.at.kind === 'scene' ? scene(t.at.id) : conn(t.at.id);
 }
-
-/** Find an item by id in one of a host's arrays (`dangers`, `counters`, …). */
-export function itemOf(host, arrayName, id){
-  return host ? byId(host[arrayName], id) : null;
-}
