@@ -79,8 +79,16 @@ function nodeMarkup(s){
   if (locs(s).length){
     h += `<div class="row">` + locs(s).map(l => {
       const col = safeColor(locColor(l));
+      // A room that holds someone else's answer is marked, so the card shows
+      // it without the DM having to open the scene.
+      const answers = owed.filter(o => o.it.srcLoc === l.id);
+      const tip = [
+        l.notes || 'кімната',
+        ...answers.map(o => `↩ рішення для «${o.it.nm}» (${o.from.name})`),
+      ].join(' · ');
       return `<span class="chip" style="color:${col};border-color:${col}55;background:${col}14"`
-        + ` title="${esc(l.notes || 'кімната')}">${esc(locIcon(l))} ${esc(locName(l))}</span>`;
+        + ` title="${esc(tip)}">${esc(locIcon(l))} ${esc(locName(l))}`
+        + `${answers.length ? ' ↩' : ''}</span>`;
     }).join('') + `</div>`;
   }
 

@@ -160,6 +160,9 @@ function blockTargetField(s, b, p){
 /* ---------- rooms ---------- */
 
 function sectionRooms(s){
+  // What other scenes are waiting to find here, indexed by the room it sits in.
+  const owed = owedBy(s.id);
+
   let h = `<fieldset><legend>Кімнати · ${locs(s).length}</legend>`;
   if (!locs(s).length){
     h += `<div class="empty">Кімната — частина сцени: зала, коридор, ділянка. `
@@ -202,6 +205,7 @@ function sectionRooms(s){
       <div style="font-size:11px;color:var(--dim);margin-top:5px">${block
         ? `Перекрита блоком «${esc(block.nm)}»${block.done ? ' (вирішено)' : ''}`
         : 'Вільна. Щоб перекрити — у блоці цієї сцени вкажіть ціллю цю кімнату.'}</div>
+      ${answersHere(owed, l)}
     </div>`;
   });
 
@@ -226,6 +230,29 @@ function sectionRooms(s){
   });
 
   return h + `</fieldset>`;
+}
+
+/**
+ * The other half of a cross-scene link. A danger or block elsewhere can name
+ * this exact room as where its answer lies; without this the connection is
+ * only visible from the side that needs it, and the DM running *this* room
+ * has no idea it matters to anyone.
+ */
+function answersHere(owed, l){
+  const answers = owed.filter(o => o.it.srcLoc === l.id);
+  if (!answers.length) return '';
+  return `<div style="font-size:11px;color:var(--jade);margin-top:5px">
+    ↩ Тут рішення для:
+    ${answers.map(o => `<button class="linkbtn" data-goto="${esc(o.from.id)}"
+      title="${esc(o.kind === 'danger' ? o.it.fix : o.it.key)}">`
+      + `${o.kind === 'danger' ? '☠' : '⛔'} ${esc(o.it.nm)} · ${esc(o.from.name)}`
+      + `${solvedTag(o)}</button>`).join(', ')}
+  </div>`;
+}
+
+function solvedTag(o){
+  const solved = o.kind === 'danger' ? o.it.active === false : !!o.it.done;
+  return solved ? ' (закрито)' : '';
 }
 
 function registrySlot(s, l, r){
